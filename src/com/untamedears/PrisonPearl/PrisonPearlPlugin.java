@@ -11,8 +11,9 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
+import java.lang.Thread;
 
-import net.minecraft.server.v1_4_6.Item;
+import net.minecraft.server.v1_4_R1.Item;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -52,6 +53,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	
 	private Map<String, PermissionAttachment> attachments;
 	
+	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
+	
 	public void onEnable() {
 		getConfig().options().copyDefaults(true);
 		saveConfig();
@@ -76,6 +79,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
 		loadAlts();
 		checkBanAllAlts();
+	
 		
 		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))
 			new PhysicalShopListener(this, pearls);
@@ -110,6 +114,16 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		attachments = new HashMap<String, PermissionAttachment>();
 		for (Player player : Bukkit.getOnlinePlayers())
 			updateAttachment(player);
+		
+		if (startupFeed){
+			//try{
+				//Thread.sleep(1000 * 60);
+				pearls.feedPearls(pearlman);
+			//}
+			//catch(Exception e){
+				//System.out.println("A straight foolish error has occurred while loading PrisonPearl.");
+			//}
+		}
 	}
 
 	public void onDisable() {
