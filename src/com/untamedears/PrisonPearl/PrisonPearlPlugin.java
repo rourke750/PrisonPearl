@@ -57,7 +57,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	
 	public void onEnable() {
 	try {
-    	    Metrics metrics = new Metrics(this);
+    	    Metrics metrics = new Metrics(this);// Metrics support
     	    metrics.start();
     	} catch (IOException e) {
     	    // Failed to submit the stats :-(
