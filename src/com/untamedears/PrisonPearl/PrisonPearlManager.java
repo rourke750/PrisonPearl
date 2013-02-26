@@ -193,18 +193,26 @@ class PrisonPearlManager implements Listener {
 		player.sendMessage("You've freed " + pp.getImprisonedName());
 	}
 	
-	// Free pearls when a player leaves
+	// Drops a pearl when a player leaves.
 	@EventHandler(priority=EventPriority.MONITOR)
+	
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		Inventory inv = event.getPlayer().getInventory();
+		World respawnworld = Bukkit.getWorld(getConfig().getString("free_world"));
+		Player imprisoner= event.getPlayer();
+		Inventory inv = imprisoner.getInventory();
 		for (Entry<Integer, ? extends ItemStack> entry : inv.all(Material.ENDER_PEARL).entrySet()) {
-			int slot = entry.getKey();
-			PrisonPearl pp = pearls.getByItemStack(entry.getValue());
-			if (pp == null)
+			ItemStack item = entry.getValue();
+			if (pearls.getByItemStack(item)==null){
 				continue;
-
-			if (freePearl(pp))
+			}
+			
+			int slot = entry.getKey();
+			inv.clear(slot);
+				
+			imprisoner.getWorld().dropItem(imprisoner.getLocation(), item);
 				inv.setItem(slot, null);
+			
+			
 		}
 	}
 	
