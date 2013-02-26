@@ -109,9 +109,9 @@ class PrisonPearlCommands implements CommandExecutor {
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppcheck");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("kill")) {
-            if(sender.hasPermission("prisonpearl.kill")) {// sees if the players has the permission.
+            if(sender.hasPermission("prisonpearl.normal.kill")) {// sees if the players has the permission.
             return kill();}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.kill");}// if players doesn't have permission, broadcasts message saying what they are missing.
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.kill");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsetdist")) {
             if(sender.hasPermission("prisonpearl.normal.ppsetdist")) {// sees if the players has the permission.       
