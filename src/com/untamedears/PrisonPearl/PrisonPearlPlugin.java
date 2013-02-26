@@ -56,6 +56,12 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
+	try {
+    	    Metrics metrics = new Metrics(this);// Metrics support
+    	    metrics.start();
+    	} catch (IOException e) {
+    	    // Failed to submit the stats :-(
+    	}
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 		
