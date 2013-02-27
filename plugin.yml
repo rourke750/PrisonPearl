@@ -100,6 +100,94 @@ commands:
       
 
 permissions:
+   prisonpearl.normal.pplocate:
+      description: Gives access to the pplocate command.
+      default: true
+
+   prisonpearl.normal.pplocateany:
+      description: Gives access to the pplocateany command.
+      default: true
+
+   prisonpearl.normal.ppfree:
+      description: Gives access to the ppfree command.
+      default: true
+
+   prisonpearl.normal.ppfreeany:
+      description: Gives access to the ppany command.
+      default: true
+
+   prisonpearl.normal.ppsummon:
+      description: Gives access to the ppsummon command.
+      default: true
+
+   prisonpearl.normal.ppreturn:
+      description: Gives access to the ppreturn command.
+      default: true
+
+   prisonpearl.normal.ppkill:
+      description: Gives access to the ppkill command.
+      default: true
+
+   prisonpearl.ppsave:
+      description: Gives access to the ppsave command.
+      default: false
+
+   prisonpearl.ppimprisonany:
+      description: Gives access to the ppimprisonany command.
+      default: false
+
+   prisonpearl.ppbroadcast:
+      description: Gives access to the ppbroadcast command.
+      default: true
+
+   prisonpearl.ppconfirm:
+      description: Gives access to the ppconfirm command.
+      default: true
+
+   prisonpearl.normal.ppsilence:
+      description: Gives access to the ppsilence command.
+      default: true
+
+   prisonpearl.pploadalts:
+      description: Gives access to the pploadalts command.
+      default: false
+
+   prisonpearl.ppcheckall:
+      description: Gives access to the ppcheckall command.
+      default: false
+
+   prisonpearl.ppcheck:
+      description: Gives access to the ppcheck command.
+      default: false
+
+   prisonpearl.kill:
+      description: Gives access to the kill command.
+      default: false
+
+   prisonpearl.normal.ppsetdist:
+      description: Gives access to the ppsetdist command.
+      default: true
+
+   prisonpearl.normal.ppsetdamage:
+      description: Gives access to the ppsetdamage command.
+      default: true
+
+   prisonpearl.normal.pptogglespeech:
+      description: Gives access to the pptogglespeech command.
+      default: true
+
+   prisonpearl.normal.pptoggledamage:
+      description: Gives access to the pptoggledamage command.
+      default: true
+
+   prisonpearl.normal.pptoggleblocks:
+      description: Gives access to the pptoggleblocks command.
+      default: true
+
+   prisonpearl.normal.ppsetmotd:
+      description: Gives access to the ppsetmotd command.
+      default: true
+
    prisonpearl.*:
       description: Gives full access to PrisonPearl commands
       default: op
