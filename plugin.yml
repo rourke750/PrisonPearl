@@ -103,6 +103,10 @@ permissions:
    prisonpearl.normal.pplocate:
       description: Gives access to the pplocate command.
       default: true
+         
+   prisonpearl.pplocateany: 	
+      description: Gives access to the pplocateany command.
+      default: false
 
    prisonpearl.normal.ppfree:
       description: Gives access to the ppfree command.
