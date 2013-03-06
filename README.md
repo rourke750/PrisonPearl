@@ -117,9 +117,9 @@ permissions:
       description: Gives access to the ppfree command.
       default: true
 
-   prisonpearl.normal.ppfreeany:
+   prisonpearl.ppfreeany:
       description: Gives access to the ppany command.
-      default: true
+      default: false
 
    prisonpearl.normal.ppsummon:
       description: Gives access to the ppsummon command.
