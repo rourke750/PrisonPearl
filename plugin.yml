@@ -100,7 +100,7 @@ permissions:
       description: Gives access to the pplocate command.
       default: true
 
-   prisonpearl.normal.pplocateany:
+   prisonpearl.pplocateany:
       description: Gives access to the pplocateany command.
       default: true
 
@@ -127,16 +127,12 @@ permissions:
    prisonpearl.ppsave:
       description: Gives access to the ppsave command.
       default: false
-
-   prisonpearl.ppimprisonany:
-      description: Gives access to the ppimprisonany command.
-      default: false
-
-   prisonpearl.ppbroadcast:
+      
+   prisonpearl.normal.ppbroadcast:
       description: Gives access to the ppbroadcast command.
       default: true
 
-   prisonpearl.ppconfirm:
+   prisonpearl.normal.ppconfirm:
       description: Gives access to the ppconfirm command.
       default: true
 
@@ -167,6 +163,15 @@ permissions:
    prisonpearl.normal.ppsetdamage:
       description: Gives access to the ppsetdamage command.
       default: true
+      
+   prisonpearl.ppimprisonany:
+      description: Gives access to the ppsetdamage command.
+      default: false
+      
+   prisonpearl.normal.ppsetmotd:
+      description: Gives access to the ppsetmotd command.
+      default: true
+      
 
    prisonpearl.normal.pptogglespeech:
       description: Gives access to the pptogglespeech command.
@@ -180,9 +185,6 @@ permissions:
       description: Gives access to the pptoggleblocks command.
       default: true
 
-   prisonpearl.normal.ppsetmotd:
-      description: Gives access to the ppsetmotd command.
-      default: true
 
    prisonpearl.*:
       description: Gives full access to PrisonPearl commands
@@ -193,16 +195,16 @@ permissions:
          prisonpearl.ppimprisonany: true
          prisonpearl.ppsave: true
 
-   prisonpearl.locateany:
+   prisonpearl.pplocateany:
       description: Allows user to use pplocateany to locate prison pearls other than his own
       
-   prisonpearl.freeany:
+   prisonpearl.ppfreeany:
       description: Allows user to use ppfreeany to free prison pearls he does not possess
       
-   prisonpearl.imprisonany:
+   prisonpearl.ppimprisonany:
       description: Allows user to use ppimprisonany to imprison any player at will
       
-   prisonpearl.save:
+   prisonpearl.ppsave:
       description: Allows user to use ppsave command
    
       

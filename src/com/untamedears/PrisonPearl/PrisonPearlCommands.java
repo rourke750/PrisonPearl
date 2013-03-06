@@ -76,7 +76,7 @@ class PrisonPearlCommands implements CommandExecutor {
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppsave");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppimprisonany")) {
-            if(sender.hasPermission("prisonpearl.imprisonany")) {// sees if the players has the permission.
+            if(sender.hasPermission("prisonpearl.ppimprisonany")) {// sees if the players has the permission.
             return imprisonCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppimprisonany");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
@@ -141,7 +141,7 @@ class PrisonPearlCommands implements CommandExecutor {
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggleblocks");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsetmotd")) {
-            if(sender.hasPermission("prisonpearl.normal.ppmotd")) {// sees if the players has the permission.
+            if(sender.hasPermission("prisonpearl.normal.ppsetmotd")) {// sees if the players has the permission.
             return setMotdCmd(sender, args);}    
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetmotd");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
