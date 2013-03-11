@@ -1,6 +1,6 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 1.5.1
+version: 1.5.3
 soft-depend: [PhysicalShop, CombatTag]
 
 commands:
@@ -99,10 +99,10 @@ permissions:
    prisonpearl.normal.pplocate:
       description: Gives access to the pplocate command.
       default: true
-         
-   prisonpearl.pplocateany: 	
+
+   prisonpearl.normal.pplocateany:
       description: Gives access to the pplocateany command.
-      default: false
+      default: true
 
    prisonpearl.normal.ppfree:
       description: Gives access to the ppfree command.

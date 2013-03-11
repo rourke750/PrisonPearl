@@ -723,4 +723,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public PPConfig getPPConfig() {
 		return ppconfig;
 	}
+
+    public void info(String msg) {
+        log.info(msg);
+    }
 }
