@@ -34,6 +34,8 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PrisonPearlPlugin extends JavaPlugin implements Listener {
+	private PPConfig ppconfig;
+
 	private PrisonPearlStorage pearls;
 	private DamageLogManager damageman;
 	private PrisonPearlManager pearlman;
@@ -56,8 +58,16 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
+	try {
+    	    Metrics metrics = new Metrics(this);// Metrics support
+    	    metrics.start();
+    	} catch (IOException e) {
+    	    // Failed to submit the stats :-(
+    	}
 		getConfig().options().copyDefaults(true);
 		saveConfig();
+		
+		ppconfig = new PPConfig(getConfig());
 		
 		log = this.getLogger();
 		
@@ -65,7 +75,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		//wasKicked = new HashMap<String, Boolean>();
 		banned = new HashMap<String, Boolean>();
 		
-		pearls = new PrisonPearlStorage();
+		pearls = new PrisonPearlStorage(this);
 		load(pearls, getPrisonPearlsFile());
 		
 		damageman = new DamageLogManager(this);
@@ -708,5 +718,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 		}
 		return result;
+	}
+	
+	public PPConfig getPPConfig() {
+		return ppconfig;
 	}
 }
