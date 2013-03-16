@@ -42,8 +42,6 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import com.topcat.npclib.entity.NPC;
-import com.trc202.CombatTag.CombatTag;
-import com.trc202.CombatTagApi.CombatTagApi;
 import com.trc202.CombatTagEvents.NpcDespawnEvent;
 import com.trc202.CombatTagEvents.NpcDespawnReason;
 
@@ -158,6 +156,7 @@ class PrisonPearlManager implements Listener {
 	}
 
 	public boolean freePearl(PrisonPearl pp) {
+		pearls.deletePearl(pp);
 		// set off an event
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) {
 			pearls.addPearl(pp);
@@ -265,9 +264,8 @@ class PrisonPearlManager implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player imprisoner = event.getPlayer();
-		CombatTag ct = (CombatTag)imprisoner.getServer().getPluginManager().getPlugin("CombatTag");
-		CombatTagApi ct_api = new CombatTagApi(ct);
-		if (ct_api.isInCombat(imprisoner)) { // if player is tagged
+		CombatTagManager ctm = plugin.getCombatTagManager();
+		if (ctm.isCombatTagged(imprisoner)) { // if player is tagged
 			return;
 		}
 		Location loc = imprisoner.getLocation();

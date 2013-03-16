@@ -386,7 +386,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			String[] alts = altsList.getAltsArray(player.getName());
 			checkBans(alts);
 			
-			pearls.deletePearl(pp);
 			player.sendMessage("You've been freed!");
 			broadcastman.broadcast(player, player.getDisplayName() + " was freed!");
 		}
@@ -570,7 +569,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	}
     	return false;
     }
-	
+
+    public CombatTagManager getCombatTagManager() {
+        return combatTagManager;
+    }
+
 	public void loadAlts() {
 		if (altsList == null) {
 			altsList = new AltsList();
