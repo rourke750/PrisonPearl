@@ -93,6 +93,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		
 		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))
 			new PhysicalShopListener(this, pearls);
+		if (Bukkit.getPluginManager().isPluginEnabled("CombatTag"))
+			new CombatTagListener(this, pearlman);
 		
 		Bukkit.getPluginManager().registerEvents(this, this);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -303,7 +305,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (combatTagManager.isCombatTagNPC(event.getEntity()))  {
 			String npcName = player.getName();
 			String realName = combatTagManager.getNPCPlayerName(player);
-			log.info("NPC: "+npcName+", Player: "+playerName);
+			log.info("NPC: "+npcName+", Player: "+realName);
 			if (!realName.equals("")) {
 				playerName = realName;
 			}
@@ -336,7 +338,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			if (getConfig().getBoolean("prison_musthotbar") && firstpearl > 9) // bail if it must be in the hotbar
 				continue; 
 				
-			if (pearlman.imprisonPlayer(player, damager)) // otherwise, try to imprison
+			if (pearlman.imprisonPlayer(playerName, damager)) // otherwise, try to imprison
 				break;
 		}
 	}

@@ -41,10 +41,6 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
-import com.topcat.npclib.entity.NPC;
-import com.trc202.CombatTagEvents.NpcDespawnEvent;
-import com.trc202.CombatTagEvents.NpcDespawnReason;
-
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
@@ -156,12 +152,11 @@ class PrisonPearlManager implements Listener {
 	}
 
 	public boolean freePearl(PrisonPearl pp) {
-		pearls.deletePearl(pp);
 		// set off an event
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.FREED)) {
-			pearls.addPearl(pp);
 			return false;
 		}
+		pearls.deletePearl(pp);
 		return true;
 	}
 
@@ -221,19 +216,15 @@ class PrisonPearlManager implements Listener {
 		player.sendMessage("You've freed " + pp.getImprisonedName());
 	}
 
-	@EventHandler(priority=EventPriority.LOWEST)
-	public void onNpcDespawn(NpcDespawnEvent event) {
-		if (event.getReason() != NpcDespawnReason.DESPAWN_TIMEOUT) {
-			return;
-		}
-		NPC npc = event.getNpc();
-		String npc_name = event.getPlayerData().getPlayerName();
-		Location loc = event.getNpc().getBukkitEntity().getLocation();
+	// Called from CombatTagListener.onNpcDespawn
+	public void handleNpcDespawn(String plrname, Location loc) {
 		World world = loc.getWorld();
-		Player player = plugin.getServer().getPlayer(npc_name);
+		Player player = plugin.getServer().getPlayer(plrname);
 		if (player == null) { // If player is offline
 			MinecraftServer server = ((CraftServer)plugin.getServer()).getServer();
-			EntityPlayer entity = new EntityPlayer(server, server.getWorldServer(0), npc_name, new PlayerInteractManager(server.getWorldServer(0)));
+			EntityPlayer entity = new EntityPlayer(
+				server, server.getWorldServer(0), plrname,
+				new PlayerInteractManager(server.getWorldServer(0)));
 			player = (entity == null) ? null : (Player) entity.getBukkitEntity();
 			if (player == null) {
 				return;
