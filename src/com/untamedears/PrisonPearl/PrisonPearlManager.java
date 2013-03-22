@@ -3,10 +3,10 @@ package com.untamedears.PrisonPearl;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
-import net.minecraft.server.v1_5_R1.EntityPlayer;
-import net.minecraft.server.v1_5_R1.MinecraftServer;
-import net.minecraft.server.v1_5_R1.PlayerInteractManager;
-import org.bukkit.craftbukkit.v1_5_R1.CraftServer;
+import net.minecraft.server.v1_5_R2.EntityPlayer;
+import net.minecraft.server.v1_5_R2.MinecraftServer;
+import net.minecraft.server.v1_5_R2.PlayerInteractManager;
+import org.bukkit.craftbukkit.v1_5_R2.CraftServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

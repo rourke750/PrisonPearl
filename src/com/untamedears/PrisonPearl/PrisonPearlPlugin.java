@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import java.lang.Thread;
 
-import net.minecraft.server.v1_5_R1.Item;
+import net.minecraft.server.v1_5_R2.Item;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
