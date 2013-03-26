@@ -19,3 +19,7 @@ save_ticks: 2400
 upkeep:
   resource: 263
   quantity: 4
+ignore_feed:
+  days: 0
+  hours: 0
+  seconds: 0

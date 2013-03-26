@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -25,6 +27,7 @@ import org.bukkit.block.BrewingStand;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Furnace;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -204,7 +207,11 @@ public class PrisonPearlStorage implements SaveLoad {
 		String message = "";
 		String log = "";
 		ConcurrentHashMap<Short,PrisonPearl> map = new ConcurrentHashMap<Short,PrisonPearl>(pearls_byid);
-		
+
+		long inactive_seconds = this.getConfig().getLong("ignore_feed.seconds", 0);
+		long inactive_hours = this.getConfig().getLong("ignore_feed.hours", 0);
+		long inactive_days = this.getConfig().getLong("ignore_feed.days", 0);
+
 		int pearlsfed = 0;
 		int coalfed = 0;
 		int freedpearls = 0;
@@ -252,7 +259,16 @@ public class PrisonPearlStorage implements SaveLoad {
 					break;
 				}				
 			}		
-			
+			if (inactive_seconds != 0 || inactive_hours != 0 || inactive_days != 0) {
+				long inactive_time = pp.getImprisonedOfflinePlayer().getLastPlayed();
+				long inactive_millis = inactive_seconds * 1000 + inactive_hours * 3600000 + inactive_days * 86400000;
+				inactive_time += inactive_millis;
+				if (inactive_time <= System.currentTimeMillis()) {
+					// if player has not logged on in the set amount of time than ignore feeding
+					log += "\nnot fed inactive: " + pp.getImprisonedName();
+					continue;
+				}
+			}
 			message = message + "Pearl #" + pp.getID() + ",Name: " + pp.getImprisonedName() + " in a " + pp.getHolderBlockState().getType();
 			ItemStack requirement = plugin.getPPConfig().getUpkeepResource();
 			int requirementSize = requirement.getAmount();
@@ -295,5 +311,8 @@ public class PrisonPearlStorage implements SaveLoad {
 		
 		//Report restoration
 	    return "";
+	}
+	private Configuration getConfig() {
+		return plugin.getConfig();
 	}
 }
