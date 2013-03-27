@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -56,7 +57,11 @@ public class PrisonPearl {
 	public Player getImprisonedPlayer() {
 		return Bukkit.getPlayerExact(imprisonedname);
 	}
-	
+
+	public OfflinePlayer getImprisonedOfflinePlayer() {
+		return Bukkit.getOfflinePlayer(imprisonedname);
+	}
+
 	public Player getHolderPlayer() {
 		return player;
 	}
