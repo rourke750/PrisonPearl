@@ -104,7 +104,7 @@ permissions:
 
    prisonpearl.pplocateany:
       description: Gives access to the pplocateany command.
-      default: true
+      default: false
 
    prisonpearl.normal.ppfree:
       description: Gives access to the ppfree command.
@@ -186,7 +186,6 @@ permissions:
       description: Gives access to the pptoggleblocks command.
       default: true
 
-
    prisonpearl.*:
       description: Gives full access to PrisonPearl commands
       default: op
@@ -195,15 +194,3 @@ permissions:
          prisonpearl.ppfreeany: true
          prisonpearl.ppimprisonany: true
          prisonpearl.ppsave: true
-
-   prisonpearl.pplocateany:
-      description: Allows user to use pplocateany to locate prison pearls other than his own
-
-   prisonpearl.ppfreeany:
-      description: Allows user to use ppfreeany to free prison pearls he does not possess
-
-   prisonpearl.ppimprisonany:
-      description: Allows user to use ppimprisonany to imprison any player at will
-
-   prisonpearl.ppsave:
-      description: Allows user to use ppsave command

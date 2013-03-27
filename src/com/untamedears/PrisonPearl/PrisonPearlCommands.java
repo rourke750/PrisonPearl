@@ -55,7 +55,7 @@ class PrisonPearlCommands implements CommandExecutor {
         } else if (label.equalsIgnoreCase("ppsummon") || label.equalsIgnoreCase("pps")) {
             if(sender.hasPermission("prisonpearl.normal.ppsummon")) {// sees if the players has the permission.
                 return summonCmd(sender, args);}
-            else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppsummon");}// if players doesn't have permission, broadcasts message saying what they are missing.
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsummon");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppreturn") || label.equalsIgnoreCase("ppr")) {
             if(sender.hasPermission("prisonpearl.normal.ppreturn")) {// sees if the players has the permission.
