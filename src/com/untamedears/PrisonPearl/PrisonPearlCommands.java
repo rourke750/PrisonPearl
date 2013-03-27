@@ -20,7 +20,7 @@ class PrisonPearlCommands implements CommandExecutor {
     private final PrisonPearlManager pearlman;
     private final SummonManager summonman;
     private final BroadcastManager broadcastman;
-   
+
     public PrisonPearlCommands(PrisonPearlPlugin plugin, DamageLogManager damageman, PrisonPearlStorage pearls, PrisonPearlManager pearlman, SummonManager summonman, BroadcastManager broadcastman) {
         this.plugin = plugin;
         this.pearls = pearls;
@@ -29,133 +29,128 @@ class PrisonPearlCommands implements CommandExecutor {
         this.summonman = summonman;
         this.broadcastman = broadcastman;
     }
-   
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-       
-            if (label.equalsIgnoreCase("pplocate") || label.equalsIgnoreCase("ppl")) {
-                if(sender.hasPermission("prisonpearl.normal.pplocate")) {// sees if the players has the permission.
+        if (label.equalsIgnoreCase("pplocate") || label.equalsIgnoreCase("ppl")) {
+            if(sender.hasPermission("prisonpearl.normal.pplocate")) {// sees if the players has the permission.
                 return locateCmd(sender, args, false);}
-                else {sender.sendMessage("You Do not have Permissions prisonpearl.normal.pplocate");}// if players doesn't have permission, broadcasts message saying what they are missing.
-       
-            }else if (label.equalsIgnoreCase("pplocateany")){
-                    if (sender.hasPermission("prisonpearl.pplocateany")) {// sees if the players has the permission.
-                 return locateCmd(sender, args, true);}
-                 else {sender.sendMessage("You Do not have Permissions prisonpearl.pplocateany");}// if players doesn't have permission, broadcasts message saying what they are missing.
-                
+            else {sender.sendMessage("You Do not have Permissions prisonpearl.normal.pplocate");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
+        }else if (label.equalsIgnoreCase("pplocateany")){
+            if (sender.hasPermission("prisonpearl.pplocateany")) {// sees if the players has the permission.
+                return locateCmd(sender, args, true);}
+            else {sender.sendMessage("You Do not have Permissions prisonpearl.pplocateany");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppfree") || label.equalsIgnoreCase("ppf")) {
-                if(sender.hasPermission("prisonpearl.normal.ppfree")) {// sees if the players has the permission.
-            return freeCmd(sender, args, false);}
-                else {sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppfree");} // if players doesn't have permission, broadcasts message saying what they are missing.
+            if(sender.hasPermission("prisonpearl.normal.ppfree")) {// sees if the players has the permission.
+                return freeCmd(sender, args, false);}
+            else {sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppfree");} // if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppfreeany")) {
             if(sender.hasPermission("prisonpearl.ppfreeany")) {// sees if the players has the permission.
-            return freeCmd(sender, args, true);}
+                return freeCmd(sender, args, true);}
             else {sender.sendMessage("You Do not have Permissions prisonpearl.ppfreeany");} // if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsummon") || label.equalsIgnoreCase("pps")) {
             if(sender.hasPermission("prisonpearl.normal.ppsummon")) {// sees if the players has the permission.
-            return summonCmd(sender, args);}
+                return summonCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppsummon");}// if players doesn't have permission, broadcasts message saying what they are missing.
-           
+
         } else if (label.equalsIgnoreCase("ppreturn") || label.equalsIgnoreCase("ppr")) {
             if(sender.hasPermission("prisonpearl.normal.ppreturn")) {// sees if the players has the permission.
-            return returnCmd(sender, args);}
+                return returnCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppreturn");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppkill") || label.equalsIgnoreCase("ppk")) {
             if(sender.hasPermission("prisonpearl.normal.ppkill")) {// sees if the players has the permission.
-            return killCmd(sender, args);}
+                return killCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppkill");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsave")) {
             if(sender.hasPermission("prisonpearl.ppsave")) {// sees if the players has the permission.
-            return saveCmd(sender, args);}
+                return saveCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppsave");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppimprisonany")) {
             if(sender.hasPermission("prisonpearl.ppimprisonany")) {// sees if the players has the permission.
-            return imprisonCmd(sender, args);}
+                return imprisonCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppimprisonany");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppbroadcast")) {
             if(sender.hasPermission("prisonpearl.normal.ppbroadcast")) {// sees if the players has the permission.
-            return broadcastCmd(sender, args);}
+                return broadcastCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppbroadcast");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppconfirm")) {
             if(sender.hasPermission("prisonpearl.normal.ppconfirm")) {// sees if the players has the permission.
-            return confirmCmd(sender, args);}
+                return confirmCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppconfirm");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsilence")) {
             if(sender.hasPermission("prisonpearl.normal.ppsilence")) {// sees if the players has the permission.
-            return silenceCmd(sender, args);}
+                return silenceCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsilence");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("pploadalts")) {
             if(sender.hasPermission("prisonpearl.pploadalts")) {// sees if the players has the permission.
-            return reloadAlts(sender);}
+                return reloadAlts(sender);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.pploadalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppcheckall")) {
             if(sender.hasPermission("prisonpearl.ppcheckall")) {// sees if the players has the permission.
-            return checkAll(sender);}
+                return checkAll(sender);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppcheckall");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppcheck")) {
             if(sender.hasPermission("prisonpearl.ppcheck")) {// sees if the players has the permission.
-            return check(sender, args);}
+                return check(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.ppcheck");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("kill")) {
             if(sender.hasPermission("prisonpearl.kill")) {// sees if the players has the permission.
-            return kill();}
+                return kill();}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.kill");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsetdist")) {
-            if(sender.hasPermission("prisonpearl.normal.ppsetdist")) {// sees if the players has the permission.       
-            return setDistCmd(sender, args);}
+            if(sender.hasPermission("prisonpearl.normal.ppsetdist")) {// sees if the players has the permission.
+                return setDistCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetdist");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsetdamage")) {
             if(sender.hasPermission("prisonpearl.normal.ppsetdamage")) {// sees if the players has the permission.
-            return setDamageCmd(sender, args);}
+                return setDamageCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetdamage");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("pptogglespeech")) {
             if(sender.hasPermission("prisonpearl.normal.pptogglespeech")) {// sees if the players has the permission.
-            return toggleSpeechCmd(sender, args);}
+                return toggleSpeechCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptogglespeech");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("pptoggledamage")) {
             if(sender.hasPermission("prisonpearl.normal.pptoggledamage")) {// sees if the players has the permission.
-            return toggleDamageCmd(sender, args);}
+                return toggleDamageCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggledamage");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("pptoggleblocks")) {
             if(sender.hasPermission("prisonpearl.normal.pptoggleblocks")) {// sees if the players has the permission.
-            return toggleBlocksCmd(sender, args);}
+                return toggleBlocksCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.pptoggleblocks");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsetmotd")) {
             if(sender.hasPermission("prisonpearl.normal.ppsetmotd")) {// sees if the players has the permission.
-            return setMotdCmd(sender, args);}    
+                return setMotdCmd(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetmotd");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppfeed")) {
             return feedCmd(sender, args, false);
-           
+
         } else if (label.equalsIgnoreCase("pprestore")) {
             return restoreCmd(sender, args, false);
-           
         }
         return false;
-   
-}
-   
+    }
+
     private boolean restoreCmd(CommandSender sender, String args[], boolean any){
         if ((sender instanceof Player)) {
             sender.sendMessage("Must use [[restore at the console");
@@ -180,26 +175,21 @@ class PrisonPearlCommands implements CommandExecutor {
         sender.sendMessage(pearls.feedPearls(pearlman));
         return true;
     }
-   
+
     private PrisonPearl setCmd(CommandSender sender, String[] args) {
         PrisonPearl pp;
-
         if (!(sender instanceof Player)) {
             sender.sendMessage("ppset cannot be used at the console");
             return null;
         }
-
         String[] anArray = {};
         Player player = (Player)sender;
         pp = getCommandPearl(player, anArray, 1);
-
         if (pp == null){
             return null;
         }
-
         if (args.length > 1)
             return null;
-
         if (pp.getImprisonedPlayer().isDead()) {
             sender.sendMessage(pp.getImprisonedName() + " is dead. Bring him back to try again.");
             return null;
@@ -210,48 +200,35 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage(pp.getImprisonedName() + " is not summoned.");
             return null;
         }
-
         return pp;
     }
 
     @SuppressWarnings("SameReturnValue")
     private boolean setDistCmd(CommandSender sender, String args[]) {
-
         PrisonPearl pp = setCmd(sender, args);
-
         if (pp == null) {
-
             return false;
         }
-
         summonman.getSummon(pp.getImprisonedName()).setAllowedDistance(Integer.parseInt(args[0]));
         sender.sendMessage(pp.getImprisonedName() + "'s allowed distance set to " + args[0]);
         return true;
     }
 
     private boolean setDamageCmd(CommandSender sender, String args[]) {
-
         PrisonPearl pp = setCmd(sender, args);
-
         if (pp == null) {
-
             return false;
         }
-
         summonman.getSummon(pp.getImprisonedName()).setDamageAmount(Integer.parseInt(args[0]));
         sender.sendMessage(pp.getImprisonedName() + "'s damage amount set to " + args[0]);
         return true;
     }
 
     private boolean toggleSpeechCmd(CommandSender sender, String args[]) {
-
         PrisonPearl pp = setCmd(sender, args);
-
         if (pp == null) {
-
             return false;
         }
-
         boolean speak = summonman.getSummon(pp.getImprisonedName()).isCanSpeak();
         summonman.getSummon(pp.getImprisonedName()).setCanSpeak(!speak);
         sender.sendMessage(pp.getImprisonedName() + " ability to speak set to " + !speak);
@@ -259,14 +236,10 @@ class PrisonPearlCommands implements CommandExecutor {
     }
 
     private boolean toggleDamageCmd(CommandSender sender, String args[]) {
-
         PrisonPearl pp = setCmd(sender, args);
-
         if (pp == null) {
-
-        return false;
-    }
-
+            return false;
+        }
         boolean damage = summonman.getSummon(pp.getImprisonedName()).isCanDealDamage();
         summonman.getSummon(pp.getImprisonedName()).setCanDealDamage(!damage);
         sender.sendMessage(pp.getImprisonedName() + " ability to deal damage set to " + !damage);
@@ -274,14 +247,10 @@ class PrisonPearlCommands implements CommandExecutor {
     }
 
     private boolean toggleBlocksCmd(CommandSender sender, String args[]) {
-
         PrisonPearl pp = setCmd(sender, args);
-
         if (pp == null) {
-
             return false;
         }
-
         boolean block = summonman.getSummon(pp.getImprisonedName()).isCanBreakBlocks();
         summonman.getSummon(pp.getImprisonedName()).setCanBreakBlocks(!block);
         sender.sendMessage(pp.getImprisonedName() + " ability to break blocks set to " + !block);
@@ -289,23 +258,17 @@ class PrisonPearlCommands implements CommandExecutor {
     }
 
     private boolean setMotdCmd(CommandSender sender, String args[]) {
-
         PrisonPearl pp;
-
         if (!(sender instanceof Player)) {
             sender.sendMessage("ppset cannot be used at the console");
             return true;
         }
-
         String[] anArray = {};
         Player player = (Player)sender;
         pp = getCommandPearl(player, anArray, 1);
-
         if (pp == null) {
-
             return false;
         }
-
         String s = "";
         for (String arg : args) {
             s = s.concat(arg + " ");
@@ -319,28 +282,23 @@ class PrisonPearlCommands implements CommandExecutor {
         String name_is;
         String name_possesive;
         PrisonPearl pp;
-       
         if (!any) {
             if (args.length != 0)
                 return false;
-           
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Must use pplocateany at the console");
                 return true;
             }
-               
             name_is = "You are";
             name_possesive = "Your";
             pp = pearls.getByImprisoned((Player)sender);
         } else {
             if (args.length != 1)
                 return false;
-           
             name_is = args[0] + " is";
             name_possesive = args[0] + "'s";
             pp = pearls.getByImprisoned(args[0]);
         }
-       
         if (pp != null) {
             if (!pp.verifyLocation()) {
                 System.err.println("PrisonPearl for " + pp.getImprisonedName() + " didn't validate, so is now set free");
@@ -353,42 +311,33 @@ class PrisonPearlCommands implements CommandExecutor {
         } else {
             sender.sendMessage(name_is + " not imprisoned");
         }
-       
         return true;
     }
-   
+
     private boolean freeCmd(CommandSender sender, String args[], boolean any) {
         PrisonPearl pp;
-       
         if (!any) {
             if (args.length > 1)
                 return false;
-           
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Must use freeany at console");
                 return true;
             }
-           
             Player player = (Player)sender;
-           
             int slot = getCommandPearlSlot(player, args, 0);
             if (slot == -1)
                 return true;
-           
             pp = pearls.getByItemStack(player.getInventory().getItem(slot));
-            player.getInventory().setItem(slot, null);       
+            player.getInventory().setItem(slot, null);
         } else {
             if (args.length != 1)
                 return false;
-           
             pp = pearls.getByImprisoned(args[0]);
-           
             if (pp == null) {
                 sender.sendMessage(args[0] + " is not imprisoned");
                 return true;
             }
         }
-       
         if (pearlman.freePearl(pp)) {
             if (pp.getImprisonedPlayer() != sender) // when freeing yourself, you're already going to get a message
                 sender.sendMessage("You've freed " + pp.getImprisonedName());
@@ -397,7 +346,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return true;
     }
-   
+
     private boolean imprisonCmd(CommandSender sender, String args[]) {
         if (args.length != 1)
             return false;
@@ -405,7 +354,6 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("imprison cannot be used at the console");
             return true;
         }
-       
         if (pearlman.imprisonPlayer(args[0], (Player)sender)) {
             sender.sendMessage("You imprisoned " + args[0]);
             Player player = Bukkit.getPlayerExact(args[0]);
@@ -416,19 +364,16 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return true;
     }
-   
+
     private boolean summonCmd(CommandSender sender, String args[]) {
         if (args.length > 1)
             return false;
-       
         if (!(sender instanceof Player)) {
             sender.sendMessage("Command cannot be used at console");
             return true;
         }
         Player player = (Player)sender;
-       
         PrisonPearl pp;
-
         if (args.length == 1) {
             try {
                 pp = getCommandPearl(player, args, 0);
@@ -438,16 +383,13 @@ class PrisonPearlCommands implements CommandExecutor {
         } else {
             pp = getCommandPearl(player, args, 0);
         }
-       
         if (pp == null)
             return true;
-
         //check if the pearled player is combat tagged
         if (plugin.isCombatTagged(pp.getImprisonedName())) {
             sender.sendMessage(ChatColor.RED+"[PrisonPearl]"+ChatColor.WHITE+" You cannot summon a CombatTagged player.");
             return true;
         }
-       
         if (pp.getImprisonedPlayer() == null || pp.getImprisonedPlayer().isDead()) {
             sender.sendMessage(pp.getImprisonedName() + " cannot be summoned");
             return true;
@@ -458,36 +400,29 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage(pp.getImprisonedName() + " is already summoned");
             return true;
         }
-           
         if (summonman.summonPearl(pp))
             sender.sendMessage("You've summoned " + pp.getImprisonedName());
         else
             sender.sendMessage("You failed to summon " + pp.getImprisonedName());
-        return true;       
+        return true;
     }
-   
+
     private boolean returnCmd(CommandSender sender, String args[]) {
         if (args.length > 1)
             return false;
-       
         if (!(sender instanceof Player)) {
             sender.sendMessage("Command cannot be used at console");
             return true;
         }
-       
-       
         Player player = (Player)sender;
-       
         PrisonPearl pp = getCommandPearl(player, args, 0);
         if (pp == null)
             return true;
-       
         //check if the pearled player is combat tagged
         if (plugin.isCombatTagged(pp.getImprisonedName())) {
             sender.sendMessage(ChatColor.RED+"[PrisonPearl]"+ChatColor.WHITE+" You cannot return a CombatTagged player.");
             return true;
         }
-       
         if (pp.getImprisonedName().equals(player.getName())) {
             sender.sendMessage("You cannot return yourself!");
             return true;
@@ -498,44 +433,38 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage(pp.getImprisonedName() + " is in combat and cannot be returned!");
             return true;
         }
-           
         if (summonman.returnPearl(pp))
             sender.sendMessage("You've returned " + pp.getImprisonedName());
         else
             sender.sendMessage("You failed to return " + pp.getImprisonedName());
-        return true;       
+        return true;
     }
-   
+
     private boolean killCmd(CommandSender sender, String args[]) {
         if (args.length > 1)
             return false;
-       
         if (!(sender instanceof Player)) {
             sender.sendMessage("Command cannot be used at console");
             return true;
         }
-       
         Player player = (Player)sender;
         PrisonPearl pp = getCommandPearl(player, args, 0);
         if (pp == null)
             return true;
-   
         if (!summonman.isSummoned(pp)) {
             sender.sendMessage(pp.getImprisonedName() + " has not been summoned!");
             return true;
         }
-       
         if (summonman.killPearl(pp))
             sender.sendMessage("You've killed " + pp.getImprisonedName());
         else
             sender.sendMessage("You failed to kill " + pp.getImprisonedName());
-        return true;       
+        return true;
     }
-   
+
     private boolean saveCmd(CommandSender sender, String args[]) {
         if (args.length > 0)
             return false;
-       
         try {
             plugin.saveAll(true);
             sender.sendMessage("PrisonPearl data saved!");
@@ -546,7 +475,7 @@ class PrisonPearlCommands implements CommandExecutor {
             throw e;
         }
     }
-   
+
     private boolean broadcastCmd(CommandSender sender, String args[]) {
         if (args.length != 1)
             return false;
@@ -554,7 +483,6 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("Command cannot be used at console");
             return true;
         }
-       
         Player player = (Player)sender;
         Player receiver = Bukkit.getPlayerExact(args[0]);
         if (receiver == null) {
@@ -567,17 +495,15 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("You are not imprisoned!");
             return true;
         }
-       
         if (broadcastman.addBroadcast(player, receiver)) {
             sender.sendMessage("You will broadcast pplocate information to " + receiver.getDisplayName());
             receiver.sendMessage("Type /ppconfirm to receive pplocate broadcasts from " + player.getDisplayName());
         } else {
             sender.sendMessage("You are already broadcasting to " + receiver.getDisplayName());
         }
-       
         return true;
     }
-   
+
     private boolean confirmCmd(CommandSender sender, String args[]) {
         if (args.length > 1)
             return false;
@@ -585,10 +511,8 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("Command cannot be used at console");
             return true;
         }
-       
         Player player = (Player)sender;
         Player broadcaster;
-       
         if (args.length == 1) {
             broadcaster = Bukkit.getPlayerExact(args[0]);
             if (broadcaster == null) {
@@ -602,7 +526,6 @@ class PrisonPearlCommands implements CommandExecutor {
                 return true;
             }
         }
-       
         if (broadcastman.confirmBroadcast(broadcaster, player)) {
             player.sendMessage("You will now receive broadcasts from " + broadcaster.getDisplayName());
         } else {
@@ -610,7 +533,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return true;
     }
-   
+
     private boolean silenceCmd(CommandSender sender, String args[]) {
         if (args.length != 1)
             return false;
@@ -618,14 +541,12 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("Command cannot be used at console");
             return true;
         }
-       
         Player player = (Player)sender;
         Player broadcaster = Bukkit.getPlayerExact(args[0]);
         if (broadcaster == null) {
             sender.sendMessage("No such player " + args[0]);
             return true;
         }
-       
         if (broadcastman.silenceBroadcast(player, broadcaster)) {
             player.sendMessage("You will no longer receive broadcasts from " + broadcaster.getDisplayName());
         } else {
@@ -633,7 +554,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return true;
     }
-   
+
     private PrisonPearl getCommandPearl(Player player, String args[], int pos) {
         int slot = getCommandPearlSlot(player, args, pos);
         if (slot != -1)
@@ -641,7 +562,7 @@ class PrisonPearlCommands implements CommandExecutor {
         else
             return null;
     }
-   
+
     private int getCommandPearlSlot(Player player, String args[], int pos) {
         if (args.length <= pos) {
             ItemStack item = player.getItemInHand();
@@ -649,14 +570,12 @@ class PrisonPearlCommands implements CommandExecutor {
                 player.sendMessage("You must hold a pearl or supply the player's name to use this command");
                 return -1;
             }
-           
             if (pearls.getByItemStack(item) == null) {
                 player.sendMessage("This is an ordinary ender pearl");
                 return -1;
             }
-           
             return player.getInventory().getHeldItemSlot();
-        } else {       
+        } else {
             PrisonPearl pp = pearls.getByImprisoned(args[pos]);
             if (pp != null) {
                 Inventory inv = player.getInventory();
@@ -665,12 +584,11 @@ class PrisonPearlCommands implements CommandExecutor {
                         return entry.getKey();
                 }
             }
-           
             player.sendMessage("You don't possess " + args[0] + "'s prison pearl");
             return -1;
         }
     }
-   
+
     private boolean reloadAlts(CommandSender sender) {
         if (!(sender instanceof Player)) {
             plugin.loadAlts();
@@ -679,7 +597,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return false;
     }
-   
+
     private boolean checkAll(CommandSender sender) {
         if (!(sender instanceof Player)) {
             plugin.checkBanAllAlts();
@@ -687,7 +605,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return false;
     }
-   
+
     private boolean check(CommandSender sender, String[] args) {
         if (args.length != 1)
             return false;
@@ -702,7 +620,7 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return false;
     }
-   
+
     @SuppressWarnings("SameReturnValue")
     private boolean kill() {
         return false;
