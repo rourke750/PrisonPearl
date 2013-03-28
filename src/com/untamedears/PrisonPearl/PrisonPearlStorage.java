@@ -19,6 +19,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;
@@ -31,6 +32,7 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class PrisonPearlStorage implements SaveLoad {
         private PrisonPearlPlugin plugin;
@@ -272,21 +274,57 @@ public class PrisonPearlStorage implements SaveLoad {
 			message = message + "Pearl #" + pp.getID() + ",Name: " + pp.getImprisonedName() + " in a " + pp.getHolderBlockState().getType();
 			ItemStack requirement = plugin.getPPConfig().getUpkeepResource();
 			int requirementSize = requirement.getAmount();
+
+			
+			
+
+		
+			 
+			 
+
+			 
+			 
 			if(inv[0].containsAtLeast(requirement,requirementSize))
 			{
+				int pearlnum;
+				pearlnum = inv.length;
 				message = message + "\n Chest contains enough purestrain coal.";
 				inv[0].removeItem(requirement);
 				pearlsfed++;
 				coalfed += requirementSize;
 				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
+				ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());// create pearl
+				inv[0].removeItem(is);
+				ItemMeta im = is.getItemMeta(); 
+				im.setDisplayName(pp.getImprisonedName());// rename pearl to that of imprisoned player 
+				ArrayList<String> lore = new ArrayList<String>(); 
+				lore.add(pp.getImprisonedName() + " is held within this pearl");// gives pearl lore that says more info when hovered over
+				im.addEnchant(Enchantment.DURABILITY, 1, true);// given enchantment effect (durability used because it doesn't affect pearl behaviour)
+				im.setLore(lore);// lore set 
+				is.setItemMeta(im);// meta data set 
+				is.removeEnchantment(Enchantment.DURABILITY); 
+				inv[0].setItem(pearlnum, is);
 			}
 			else if(inv[1] != null && inv[1].containsAtLeast(requirement,requirementSize)){
+				int pearlnum;
+				pearlnum = inv.length;
 				message = message + "\n Chest contains enough purestrain coal.";
 				inv[1].removeItem(requirement);
 				pearlsfed++;
 				coalfed += requirementSize;
 				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
-			}
+				ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());// create pearl
+				inv[1].removeItem(is);
+				ItemMeta im = is.getItemMeta(); 
+				im.setDisplayName(pp.getImprisonedName());// rename pearl to that of imprisoned player 
+				ArrayList<String> lore = new ArrayList<String>(); 
+				lore.add(pp.getImprisonedName() + " is held within this pearl");// gives pearl lore that says more info when hovered over
+				im.addEnchant(Enchantment.DURABILITY, 1, true);// given enchantment effect (durability used because it doesn't affect pearl behaviour)
+				im.setLore(lore);// lore set 
+				is.setItemMeta(im);// meta data set 
+				is.removeEnchantment(Enchantment.DURABILITY); 
+				inv[1].setItem(pearlnum, is);
+				}
 			else {
 				message = message + "\n Chest does not contain enough purestrain coal.";
 				pearlman.freePearl(pp);
