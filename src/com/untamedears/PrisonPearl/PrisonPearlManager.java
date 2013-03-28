@@ -1,12 +1,16 @@
 package com.untamedears.PrisonPearl;
 
+import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+
+
+
+
 
 import net.minecraft.server.v1_4_R1.EntityPlayer;
 import net.minecraft.server.v1_4_R1.MinecraftServer;
 import net.minecraft.server.v1_4_R1.PlayerInteractManager;
-import org.bukkit.craftbukkit.v1_4_R1.CraftServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,6 +24,9 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.craftbukkit.v1_4_R1.CraftServer;
+
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -40,6 +47,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
@@ -132,9 +140,21 @@ class PrisonPearlManager implements Listener {
 			return false;
 		}
 
-		// give it to the imprisoner
-		inv.setItem(
-			pearlnum, new ItemStack(Material.ENDER_PEARL, 1, pp.getID()));
+		// START OF 'TinieSnipah' EDIT - MORE PEARL TWEAKS 
+		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());// create pearl
+		ItemMeta im = is.getItemMeta(); 
+		im.setDisplayName(pp.getImprisonedName());// rename pearl to that of imprisoned player 
+		ArrayList<String> lore = new ArrayList<String>(); 
+		lore.add(pp.getImprisonedName() + " is held within this pearl");// gives pearl lore that says more info when hovered over
+		im.addEnchant(Enchantment.DURABILITY, 1, true);// given enchantment effect (durability used because it doesn't affect pearl behaviour)
+		im.setLore(lore);// lore set 
+		is.setItemMeta(im);// meta data set 
+		 is.removeEnchantment(Enchantment.DURABILITY); 
+		 //pp.getHolderPlayer().getInventory().addItem(is);// given to imprisoner 
+		 // Previous line:
+		 inv.setItem(pearlnum, is); // give it to the imprisoner 
+		// Reason for edit: Gives pearl enchantment effect (distinguishable, unstackable) Gives name of prisoner in inventory.
+		 // END OF 'TinieSnipah' EDIT - MORE PEARL TWEAKS 
 
 		if (getConfig().getBoolean("prison_resetbed")) {
 			Player imprisoned = Bukkit.getPlayerExact(imprisonedname);
