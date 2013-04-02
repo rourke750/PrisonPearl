@@ -22,6 +22,7 @@ public class PrisonPearl {
 	private Player player;
 	private Item item;
 	private Location blocklocation;
+	private long lastMoved = 0;
 	
 	public PrisonPearl(short id, String imprisonedname, Player holderplayer) {
 		this.id = id;
@@ -125,6 +126,12 @@ public class PrisonPearl {
 	
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean verifyLocation() {
+		// Return true if the pearl exists in a valid location
+		if (System.currentTimeMillis() - this.lastMoved < 2000) {
+			// The pearl was recently moved. Due to a race condition, this exists to
+			//  prevent players from spamming /ppl to get free when a pearl is moved.
+			return true;
+		}
 		if (item != null) {
 			Chunk chunk = item.getLocation().getChunk();
 			for (Entity entity : chunk.getEntities()) {
@@ -188,5 +195,9 @@ public class PrisonPearl {
 
     public void setMotd(String motd) {
         this.motd = motd;
+    }
+
+    public void markMove() {
+        this.lastMoved = System.currentTimeMillis();
     }
 }

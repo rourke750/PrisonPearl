@@ -346,6 +346,7 @@ class PrisonPearlManager implements Listener {
 
 		if (pp == null)
 			return;
+		pp.markMove();
 
 		InventoryView view = event.getView();
 		int rawslot = event.getRawSlot();
