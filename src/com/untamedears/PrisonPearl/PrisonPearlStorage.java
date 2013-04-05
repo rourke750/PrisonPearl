@@ -219,9 +219,8 @@ public class PrisonPearlStorage implements SaveLoad {
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
 		int pearlslot = inv.first(is);
 		if (pearlslot < 0) {
-			plugin.info(String.format(
-				"%s Pearl not found at %s",
-				prisoner, pp.getLocation().toString()));
+			// If the pearl has been converted, first won't return it here
+			// as the metadata doesn't match.
 			return;
 		}
 		ItemStack existing_is = inv.getItem(pearlslot);
