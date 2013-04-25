@@ -214,14 +214,14 @@ public class PrisonPearlStorage implements SaveLoad {
 		return results;
 	}
 
-	public void upgradePearl(Inventory inv, PrisonPearl pp) {
+	public boolean upgradePearl(Inventory inv, PrisonPearl pp) {
 		final String prisoner = pp.getImprisonedName();
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
 		int pearlslot = inv.first(is);
 		if (pearlslot < 0) {
 			// If the pearl has been converted, first won't return it here
 			// as the metadata doesn't match.
-			return;
+			return false;
 		}
 		ItemStack existing_is = inv.getItem(pearlslot);
 		if (existing_is != null) {
@@ -230,7 +230,7 @@ public class PrisonPearlStorage implements SaveLoad {
 				String existing_name = existing_meta.getDisplayName();
 				if (existing_name != null &&
 					existing_name.compareTo(prisoner) == 0) {
-					return;
+					return true;
 				}
 			}
 		}
@@ -247,6 +247,7 @@ public class PrisonPearlStorage implements SaveLoad {
 		is.removeEnchantment(Enchantment.DURABILITY); 
 		inv.clear(pearlslot);
 		inv.setItem(pearlslot, is);
+		return true;
 	}
 
 	public String feedPearls(PrisonPearlManager pearlman){
@@ -304,7 +305,13 @@ public class PrisonPearlStorage implements SaveLoad {
 					}
 					break;
 				}				
-			}		
+			}
+			if (inv[0] == null && inv[1] == null) {
+				continue;
+			}
+			if (!upgradePearl(inv[0], pp) && inv[1] != null) {
+				upgradePearl(inv[1], pp);
+			}
 			if (inactive_seconds != 0 || inactive_hours != 0 || inactive_days != 0) {
 				long inactive_time = pp.getImprisonedOfflinePlayer().getLastPlayed();
 				long inactive_millis = inactive_seconds * 1000 + inactive_hours * 3600000 + inactive_days * 86400000;
@@ -328,14 +335,12 @@ public class PrisonPearlStorage implements SaveLoad {
 				pearlsfed++;
 				coalfed += requirementSize;
 				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
-				upgradePearl(inv[0], pp);
 			} else if(inv[1] != null && inv[1].containsAtLeast(requirement,requirementSize)){
 				message = message + "\n Chest contains enough purestrain coal.";
 				inv[1].removeItem(requirement);
 				pearlsfed++;
 				coalfed += requirementSize;
 				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
-				upgradePearl(inv[1], pp);
 			} else {
 				message = message + "\n Chest does not contain enough purestrain coal.";
 				pearlman.freePearl(pp);
