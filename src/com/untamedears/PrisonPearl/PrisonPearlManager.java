@@ -1,6 +1,7 @@
 package com.untamedears.PrisonPearl;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
@@ -140,21 +141,22 @@ class PrisonPearlManager implements Listener {
 			return false;
 		}
 
-		// START OF 'TinieSnipah' EDIT - MORE PEARL TWEAKS 
-		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());// create pearl
-		ItemMeta im = is.getItemMeta(); 
-		im.setDisplayName(pp.getImprisonedName());// rename pearl to that of imprisoned player 
-		ArrayList<String> lore = new ArrayList<String>(); 
-		lore.add(pp.getImprisonedName() + " is held within this pearl");// gives pearl lore that says more info when hovered over
-		im.addEnchant(Enchantment.DURABILITY, 1, true);// given enchantment effect (durability used because it doesn't affect pearl behaviour)
-		im.setLore(lore);// lore set 
-		is.setItemMeta(im);// meta data set 
-		 is.removeEnchantment(Enchantment.DURABILITY); 
-		 //pp.getHolderPlayer().getInventory().addItem(is);// given to imprisoner 
-		 // Previous line:
-		 inv.setItem(pearlnum, is); // give it to the imprisoner 
+		// Create the inventory item
+		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
+		ItemMeta im = is.getItemMeta();
+		// Rename pearl to that of imprisoned player
+		im.setDisplayName(pp.getImprisonedName());
+		List<String> lore = new ArrayList<String>();
+		// Gives pearl lore that says more info when hovered over
+		lore.add(pp.getImprisonedName() + " is held within this pearl");
+		// Given enchantment effect (durability used because it doesn't affect pearl behaviour)
+		im.addEnchant(Enchantment.DURABILITY, 1, true);
+		im.setLore(lore);
+		is.setItemMeta(im);
+		is.removeEnchantment(Enchantment.DURABILITY);
+		// Give it to the imprisoner
+		inv.setItem(pearlnum, is);
 		// Reason for edit: Gives pearl enchantment effect (distinguishable, unstackable) Gives name of prisoner in inventory.
-		 // END OF 'TinieSnipah' EDIT - MORE PEARL TWEAKS 
 
 		if (getConfig().getBoolean("prison_resetbed")) {
 			Player imprisoned = Bukkit.getPlayerExact(imprisonedname);
@@ -198,10 +200,7 @@ class PrisonPearlManager implements Listener {
 		if (item.getType() == Material.ENDER_PEARL && item.getDurability() != 0) {
 			PrisonPearl pp = pearls.getByID(item.getDurability());
 
-			if (pp != null) {
-				player.sendMessage(
-					ChatColor.GREEN + "Prison Pearl - " + pp.getImprisonedName());
-			} else {
+			if (pp == null) {
 				item.setDurability((short) 0);
 				return item;
 			}
@@ -366,6 +365,7 @@ class PrisonPearlManager implements Listener {
 
 		if (pp == null)
 			return;
+		pp.markMove();
 
 		InventoryView view = event.getView();
 		int rawslot = event.getRawSlot();
