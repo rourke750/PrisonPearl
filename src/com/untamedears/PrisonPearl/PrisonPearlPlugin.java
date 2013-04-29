@@ -1,8 +1,11 @@
 package com.untamedears.PrisonPearl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -206,7 +209,18 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	
 	
 	private File getAltsListFile() {
-		return new File(getDataFolder(), "alts.txt");
+		File file = new File(getDataFolder(), "alts.txt");
+		if (!file.exists()) {
+			try {
+				FileOutputStream fos = new FileOutputStream(file);
+				BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
+				br.write("\n");
+				br.flush();
+				fos.close();
+			} catch(IOException ex) {
+			}
+		}
+		return file;
 	}
 	
 	

@@ -1,5 +1,7 @@
 package com.untamedears.PrisonPearl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
@@ -20,6 +22,8 @@ import org.bukkit.block.Dispenser;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.configuration.Configuration;
+
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -40,6 +44,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
@@ -132,9 +137,22 @@ class PrisonPearlManager implements Listener {
 			return false;
 		}
 
-		// give it to the imprisoner
-		inv.setItem(
-			pearlnum, new ItemStack(Material.ENDER_PEARL, 1, pp.getID()));
+		// Create the inventory item
+		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
+		ItemMeta im = is.getItemMeta();
+		// Rename pearl to that of imprisoned player
+		im.setDisplayName(pp.getImprisonedName());
+		List<String> lore = new ArrayList<String>();
+		// Gives pearl lore that says more info when hovered over
+		lore.add(pp.getImprisonedName() + " is held within this pearl");
+		// Given enchantment effect (durability used because it doesn't affect pearl behaviour)
+		im.addEnchant(Enchantment.DURABILITY, 1, true);
+		im.setLore(lore);
+		is.setItemMeta(im);
+		is.removeEnchantment(Enchantment.DURABILITY);
+		// Give it to the imprisoner
+		inv.setItem(pearlnum, is);
+		// Reason for edit: Gives pearl enchantment effect (distinguishable, unstackable) Gives name of prisoner in inventory.
 
 		if (getConfig().getBoolean("prison_resetbed")) {
 			Player imprisoned = Bukkit.getPlayerExact(imprisonedname);
@@ -178,10 +196,7 @@ class PrisonPearlManager implements Listener {
 		if (item.getType() == Material.ENDER_PEARL && item.getDurability() != 0) {
 			PrisonPearl pp = pearls.getByID(item.getDurability());
 
-			if (pp != null) {
-				player.sendMessage(
-					ChatColor.GREEN + "Prison Pearl - " + pp.getImprisonedName());
-			} else {
+			if (pp == null) {
 				item.setDurability((short) 0);
 				return item;
 			}
@@ -346,6 +361,7 @@ class PrisonPearlManager implements Listener {
 
 		if (pp == null)
 			return;
+		pp.markMove();
 
 		InventoryView view = event.getView();
 		int rawslot = event.getRawSlot();
