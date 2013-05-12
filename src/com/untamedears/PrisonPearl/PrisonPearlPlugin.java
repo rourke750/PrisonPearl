@@ -16,7 +16,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import java.lang.Thread;
 
-import net.minecraft.server.v1_4_R1.Item;
+import net.minecraft.server.v1_5_R3.Item;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -275,7 +275,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (newloc != null && newloc != RESPAWN_PLAYER)
 			event.setRespawnLocation(newloc);
 	}
-	
+
 	// called when a player joins or spawns
 	private void prisonMotd(Player player) {
 		if (pearls.isImprisoned(player) && !summonman.isSummoned(player)) { // if player is imprisoned
@@ -545,8 +545,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 	}
 
-@SuppressWarnings("SameReturnValue")
-@EventHandler(priority=EventPriority.NORMAL)
+    @SuppressWarnings("SameReturnValue")
+    @EventHandler(priority=EventPriority.NORMAL)
     private boolean onPlayerChatEvent(AsyncPlayerChatEvent event) {
         if (summonman.isSummoned(event.getPlayer()) && !summonman.getSummon(event.getPlayer()).isCanSpeak()) {
            event.setCancelled(true);

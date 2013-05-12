@@ -87,6 +87,7 @@ public class PrisonPearl {
 		} else if (blocklocation != null) {
 			switch (getHolderBlockState().getType()) {
 			case CHEST:
+			case TRAPPED_CHEST:
 				return "a chest";
 			case FURNACE:
 				return "a furnace";
@@ -94,6 +95,12 @@ public class PrisonPearl {
 				return "a brewing stand";
 			case DISPENSER:
 				return "a dispenser";
+			case ITEM_FRAME:
+				return "a wall frame";
+			case DROPPER:
+				return "a dropper";
+			case HOPPER:
+				return "a hopper";
 			default:
 				System.err.println("PrisonPearl " + id + " is inside an unknown block");
 				return "an unknown block"; 

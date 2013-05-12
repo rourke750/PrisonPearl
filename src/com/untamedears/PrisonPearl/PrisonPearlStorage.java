@@ -141,8 +141,81 @@ public class PrisonPearlStorage implements SaveLoad {
 		addPearl(pp);
 		return pp;
 	}
+
+	private final int HolderStateToInventory_SUCCESS = 0;
+	private final int HolderStateToInventory_BADPARAM = 1;
+	private final int HolderStateToInventory_NULLSTATE = 2;
+	private final int HolderStateToInventory_BADCONTAINER = 3;
+	private final int HolderStateToInventory_NULLINV = 4;
+
+	private int HolderStateToInventory(PrisonPearl pp, Inventory inv[]) {
+		if (pp == null || inv == null) {
+			return HolderStateToInventory_BADPARAM;
+		}
+		BlockState inherentViolence = pp.getHolderBlockState();
+		if (inherentViolence == null) {
+			return HolderStateToInventory_NULLSTATE;
+		}
+		Material mat = inherentViolence.getType();
+		switch(mat) {
+		case FURNACE:
+			inv[0] = ((Furnace)inherentViolence).getInventory();
+			break;
+		case DISPENSER:
+			inv[0] = ((Dispenser)inherentViolence).getInventory();
+			break;
+		case BREWING_STAND:
+			inv[0] = ((BrewingStand)inherentViolence).getInventory();
+			break;
+		case CHEST:
+		case LOCKED_CHEST:
+		case TRAPPED_CHEST:
+			Chest c = ((Chest)inherentViolence);
+			DoubleChestInventory dblInv = null;
+			try {
+				dblInv = (DoubleChestInventory)c.getInventory();
+				inv[0] = dblInv.getLeftSide();
+				inv[1] = dblInv.getRightSide();
+			} catch(Exception e){
+				inv[0] = c.getInventory();
+			}
+			break;
+		default:
+			return HolderStateToInventory_BADCONTAINER;
+		}
+		if (inv[0] == null && inv[1] == null) {
+			return HolderStateToInventory_NULLINV;
+		}
+		return HolderStateToInventory_SUCCESS;
+	}
+
+	public void removePearlFromContainer(PrisonPearl pp) {
+		Inventory inv[] = new Inventory[2];
+		if (HolderStateToInventory(pp, inv) != HolderStateToInventory_SUCCESS) {
+			return;
+		}
+		Inventory real_inv = null;
+		int pearlslot = -1;
+		int pp_id = pp.getID();
+		for (int inv_idx = 0; inv_idx <= 1 && pearlslot == -1; ++inv_idx) {
+			 HashMap<Integer, ? extends ItemStack> inv_contents = inv[inv_idx].all(Material.ENDER_PEARL);
+			 for (int inv_slot : inv_contents.keySet()) {
+				 ItemStack slot_item = inv_contents.get(inv_slot);
+				 if (slot_item.getDurability() == pp_id) {
+					 real_inv = inv[inv_idx];
+					 pearlslot = inv_slot;
+					 break;
+				 }
+			 }
+		}
+		if (real_inv == null || pearlslot == -1) {
+			return;
+		}
+		real_inv.setItem(pearlslot, new ItemStack(Material.ENDER_PEARL));
+	}
 	
 	public void deletePearl(PrisonPearl pp) {
+		removePearlFromContainer(pp);
 		pearls_byid.remove(pp.getID());
 		pearls_byimprisoned.remove(pp.getImprisonedName());
 		dirty = true;
@@ -263,50 +336,14 @@ public class PrisonPearlStorage implements SaveLoad {
 		int coalfed = 0;
 		int freedpearls = 0;
 		for (PrisonPearl pp : map.values()) {
-			
-			BlockState inherentViolence = pp.getHolderBlockState();
-			Material mat = inherentViolence.getType();
-			
 			Inventory inv[] = new Inventory[2];
-			inv[0] = inv[1] = null;
-			if (inherentViolence == null)
-			{
+			int retval = HolderStateToInventory(pp, inv);
+			if (retval == HolderStateToInventory_BADCONTAINER) {
+				pearlman.freePearl(pp);
+				log+="\n freed:"+pp.getImprisonedName()+",reason:"+"badcontainer";
+				freedpearls++;
 				continue;
-			}					
-			else
-			{
-				switch(mat)
-				{
-				case FURNACE:
-					inv[0] = ((Furnace)inherentViolence).getInventory();
-					break;
-				case DISPENSER:
-					inv[0] = ((Dispenser)inherentViolence).getInventory();
-					break;
-				case BREWING_STAND:
-					inv[0] = ((BrewingStand)inherentViolence).getInventory();
-					break;
-				default:
-					if (mat == Material.CHEST || mat == Material.LOCKED_CHEST){
-						Chest c = ((Chest)inherentViolence);
-						DoubleChestInventory dblInv = null;
-						try{
-							dblInv = (DoubleChestInventory)c.getInventory();
-							inv[0] = dblInv.getLeftSide();
-							inv[1] = dblInv.getRightSide();
-						}
-						catch(Exception e){
-							inv[0] = (Inventory)c.getInventory();
-						}						
-					}else{
-						pearlman.freePearl(pp);
-						log+="\n freed:"+pp.getImprisonedName()+",reason:"+"badcontainer";
-						freedpearls++;
-					}
-					break;
-				}				
-			}
-			if (inv[0] == null && inv[1] == null) {
+			} else if (retval != HolderStateToInventory_SUCCESS) {
 				continue;
 			}
 			if (!upgradePearl(inv[0], pp) && inv[1] != null) {
@@ -326,8 +363,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			ItemStack requirement = plugin.getPPConfig().getUpkeepResource();
 			int requirementSize = requirement.getAmount();
 
-			if(inv[0].containsAtLeast(requirement,requirementSize))
-			{
+			if(inv[0].containsAtLeast(requirement,requirementSize)) {
 				int pearlnum;
 				pearlnum = inv.length;
 				message = message + "\n Chest contains enough purestrain coal.";
