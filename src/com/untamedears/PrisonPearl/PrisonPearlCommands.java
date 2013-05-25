@@ -168,10 +168,7 @@ class PrisonPearlCommands implements CommandExecutor {
     		return false;
     	}
     	String[] confirmedAlts = new String[args.length-1];
-    	for (int x = 1; x < args.length; x++)
-    	{
-    		confirmedAlts[x-1] = args[x];
-    	}
+    	System.arraycopy(args, 1, confirmedAlts, 0, confirmedAlts.length);
     	try {
 			plugin.setAlts(args[0], confirmedAlts);
 			return true;
