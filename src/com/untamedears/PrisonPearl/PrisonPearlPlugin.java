@@ -751,4 +751,39 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     public AltsList getAltsList() {
     	return altsList;
     }
+    
+    public void setAlts(String name, String[] confirmedAlts) throws IOException
+    {
+    	String[] alts = altsList.getAltsArray(name);
+    	
+    	if (alts.length == 0)
+    	{
+    		return;
+    	}
+    	File saveFile = new File(this.getDataFolder().getParentFile().getParentFile(), "text" + File.separator + "excluded_alts.txt");
+		FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
+		BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+    	for (String alt : alts)
+    	{
+    		if (!(arrayContains(alt, confirmedAlts)))
+    		{
+    			bufferedWriter.append(name + " " + alt);
+    			bufferedWriter.append("\n");
+    		}
+    	}
+		bufferedWriter.flush();
+		fileOutputStream.close();
+    }
+    
+    private boolean arrayContains(String checkValue, String[] array)
+    {
+    	for (String element : array)
+    	{
+    		if (checkValue.equalsIgnoreCase(element))
+    		{
+    			return true;
+    		}
+    	}
+    	return false;
+    }
 }

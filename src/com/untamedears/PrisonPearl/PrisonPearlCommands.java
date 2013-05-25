@@ -1,5 +1,6 @@
 package com.untamedears.PrisonPearl;
 
+import java.io.IOException;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -147,15 +148,41 @@ class PrisonPearlCommands implements CommandExecutor {
 
         } else if (label.equalsIgnoreCase("pprestore")) {
             return restoreCmd(sender, args, false);
-        } else if (label.equalsIgnoreCase("ppgetalts")) {
+            
+        }else if (label.equalsIgnoreCase("ppgetalts")) {
             if(sender.hasPermission("prisonpearl.getalts")) {// sees if the players has the permission.
                 return getAlts(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.getalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
+        } else if (label.equalsIgnoreCase("ppsetalts")) {
+            if(sender.hasPermission("prisonpearl.setalts")) {// sees if the players has the permission.
+                return setAlts(sender, args);}
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.setalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
+
         }return false;
     }
 
-    private boolean getAlts(CommandSender sender, String[] args) {
+    private boolean setAlts(CommandSender sender, String[] args) {
+    	if (args.length < 1)
+    	{
+    		return false;
+    	}
+    	String[] confirmedAlts = new String[args.length-1];
+    	for (int x = 1; x < args.length; x++)
+    	{
+    		confirmedAlts[x-1] = args[x];
+    	}
+    	try {
+			plugin.setAlts(args[0], confirmedAlts);
+			return true;
+		} catch (IOException e) {
+			sender.sendMessage("IOException accured when trying to write to excluded_alts.txt");
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean getAlts(CommandSender sender, String[] args) {
     	if (args.length != 1)
     	{
     		return false;
