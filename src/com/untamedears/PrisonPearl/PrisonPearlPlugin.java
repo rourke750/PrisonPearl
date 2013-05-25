@@ -747,4 +747,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     public void info(String msg) {
         log.info(msg);
     }
+    
+    public AltsList getAltsList() {
+    	return altsList;
+    }
 }

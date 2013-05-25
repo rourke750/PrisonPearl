@@ -96,6 +96,9 @@ commands:
 
    ppsetmotd:
       description: Sets prisoner's MOTD.
+   ppgetalts:
+      description: Gets a list of the players associated accounts.
+      usage: /ppgetalts [playername]
 
 permissions:
    prisonpearl.normal.pplocate:
@@ -157,6 +160,10 @@ permissions:
    prisonpearl.kill:
       description: Gives access to the kill command.
       default: false
+      
+   prisonpearl.getalts:
+      description: Gives access to the ppgetalts command.
+      default: false
 
    prisonpearl.normal.ppsetdist:
       description: Gives access to the ppsetdist command.
@@ -194,3 +201,4 @@ permissions:
          prisonpearl.ppfreeany: true
          prisonpearl.ppimprisonany: true
          prisonpearl.ppsave: true
+         prisonpearl.getalts: true

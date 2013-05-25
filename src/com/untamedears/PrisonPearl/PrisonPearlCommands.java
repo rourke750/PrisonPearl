@@ -147,11 +147,38 @@ class PrisonPearlCommands implements CommandExecutor {
 
         } else if (label.equalsIgnoreCase("pprestore")) {
             return restoreCmd(sender, args, false);
-        }
-        return false;
+        } else if (label.equalsIgnoreCase("ppgetalts")) {
+            if(sender.hasPermission("prisonpearl.getalts")) {// sees if the players has the permission.
+                return getAlts(sender, args);}
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.getalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
+
+        }return false;
     }
 
-    private boolean restoreCmd(CommandSender sender, String args[], boolean any){
+    private boolean getAlts(CommandSender sender, String[] args) {
+    	if (args.length != 1)
+    	{
+    		return false;
+    	}
+    	String[] alts = plugin.getAltsList().getAltsArray(args[0]);
+    	if (alts.length == 0)
+    	{
+    		sender.sendMessage("No information about " + args[0]);
+    		return false;
+    	}
+    	else
+    	{
+    		String message = "";
+    		for (int x = 0; x < alts.length; x++)
+    		{
+    			message = message + alts[x] + ", ";
+    		}
+    		sender.sendMessage(message);
+    		return true;
+    	}
+	}
+
+	private boolean restoreCmd(CommandSender sender, String args[], boolean any){
         if ((sender instanceof Player)) {
             sender.sendMessage("Must use [[restore at the console");
             return true;
