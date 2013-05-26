@@ -1,6 +1,6 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 1.6.3
+version: 1.6.4
 soft-depend: [PhysicalShop, CombatTag]
 
 commands:
@@ -96,6 +96,14 @@ commands:
 
    ppsetmotd:
       description: Sets prisoner's MOTD.
+      
+   ppgetalts:
+      description: Gets a list of the players associated accounts.
+      usage: /ppgetalts [playername]
+
+   ppsetalts:
+      description: Allows people to add players to the excluded_alts.txt.
+      usage: /ppsetalts [playername] [confirmedalt1] [confirmedalt2] etc....
 
 permissions:
    prisonpearl.normal.pplocate:
@@ -157,6 +165,14 @@ permissions:
    prisonpearl.kill:
       description: Gives access to the kill command.
       default: false
+      
+   prisonpearl.getalts:
+      description: Gives access to the ppgetalts command.
+      default: false
+      
+   prisonpearl.setalts:
+      description: Gives access to the ppsetalts command.
+      default: false
 
    prisonpearl.normal.ppsetdist:
       description: Gives access to the ppsetdist command.
@@ -194,3 +210,5 @@ permissions:
          prisonpearl.ppfreeany: true
          prisonpearl.ppimprisonany: true
          prisonpearl.ppsave: true
+         prisonpearl.getalts: true
+         prisonpearl.setalts: true

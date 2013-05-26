@@ -1,5 +1,6 @@
 package com.untamedears.PrisonPearl;
 
+import java.io.IOException;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -147,11 +148,61 @@ class PrisonPearlCommands implements CommandExecutor {
 
         } else if (label.equalsIgnoreCase("pprestore")) {
             return restoreCmd(sender, args, false);
-        }
-        return false;
+            
+        }else if (label.equalsIgnoreCase("ppgetalts")) {
+            if(sender.hasPermission("prisonpearl.getalts")) {// sees if the players has the permission.
+                return getAlts(sender, args);}
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.getalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
+
+        } else if (label.equalsIgnoreCase("ppsetalts")) {
+            if(sender.hasPermission("prisonpearl.setalts")) {// sees if the players has the permission.
+                return setAlts(sender, args);}
+            else{ sender.sendMessage("You Do not have Permissions prisonpearl.setalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
+
+        }return false;
     }
 
-    private boolean restoreCmd(CommandSender sender, String args[], boolean any){
+    private boolean setAlts(CommandSender sender, String[] args) {
+    	if (args.length < 1)
+    	{
+    		return false;
+    	}
+    	String[] confirmedAlts = new String[args.length-1];
+    	System.arraycopy(args, 1, confirmedAlts, 0, confirmedAlts.length);
+    	try {
+			plugin.setAlts(args[0], confirmedAlts);
+			return true;
+		} catch (IOException e) {
+			sender.sendMessage("IOException accured when trying to write to excluded_alts.txt");
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private boolean getAlts(CommandSender sender, String[] args) {
+    	if (args.length != 1)
+    	{
+    		return false;
+    	}
+    	String[] alts = plugin.getAltsList().getAltsArray(args[0]);
+    	if (alts.length == 0)
+    	{
+    		sender.sendMessage("No information about " + args[0]);
+    		return false;
+    	}
+    	else
+    	{
+    		String message = "";
+    		for (int x = 0; x < alts.length; x++)
+    		{
+    			message = message + alts[x] + ", ";
+    		}
+    		sender.sendMessage(message);
+    		return true;
+    	}
+	}
+
+	private boolean restoreCmd(CommandSender sender, String args[], boolean any){
         if ((sender instanceof Player)) {
             sender.sendMessage("Must use [[restore at the console");
             return true;
