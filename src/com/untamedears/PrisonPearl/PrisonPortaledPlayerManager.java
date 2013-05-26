@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -93,8 +94,11 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 		Player player = event.getPlayer();
 		if (pearls.isImprisoned(player.getName()))
 			return;
-		
-		if (event.getTo().getWorld() == getPrisonWorld())
+		Location toLoc = event.getTo();
+		if (toLoc == null) {
+			return;
+		}
+		if (toLoc.getWorld() == getPrisonWorld())
 			portaled_players.add(player.getName());
 		else
 			portaled_players.remove(player.getName());

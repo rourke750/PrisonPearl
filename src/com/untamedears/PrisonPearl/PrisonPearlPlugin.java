@@ -252,7 +252,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Player player = event.getPlayer();
 		
 		if (pearls.isImprisoned(player) && !summonman.isSummoned(player)) { // if in prison but not imprisoned
-			if (event.getTo().getWorld() != getPrisonWorld()) {
+            Location toLoc = event.getTo();
+			if (toLoc != null && toLoc.getWorld() != getPrisonWorld()) {
 				prisonMotd(player);
 				delayedTp(player, getPrisonSpawnLocation());
 			}
