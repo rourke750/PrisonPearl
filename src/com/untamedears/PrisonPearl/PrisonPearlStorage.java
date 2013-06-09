@@ -56,6 +56,10 @@ public class PrisonPearlStorage implements SaveLoad {
 		dirty = true;
 	}
 
+    public String normalizeName(String name) {
+        return name.toLowerCase();
+    }
+
 	public void load(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
@@ -220,17 +224,17 @@ public class PrisonPearlStorage implements SaveLoad {
 	public void deletePearl(PrisonPearl pp) {
 		removePearlFromContainer(pp);
 		pearls_byid.remove(pp.getID());
-		pearls_byimprisoned.remove(pp.getImprisonedName());
+		pearls_byimprisoned.remove(normalizeName(pp.getImprisonedName()));
 		dirty = true;
 	}
 	
 	public void addPearl(PrisonPearl pp) {
-		PrisonPearl old = pearls_byimprisoned.get(pp.getImprisonedName());
+		PrisonPearl old = pearls_byimprisoned.get(normalizeName(pp.getImprisonedName()));
 		if (old != null)
 			pearls_byid.remove(old.getID());
 		
 		pearls_byid.put(pp.getID(), pp);
-		pearls_byimprisoned.put(pp.getImprisonedName(), pp);
+		pearls_byimprisoned.put(normalizeName(pp.getImprisonedName()), pp);
 		dirty = true;
 	}
 	
@@ -246,11 +250,11 @@ public class PrisonPearlStorage implements SaveLoad {
 	}
 	
 	public PrisonPearl getByImprisoned(String name) {
-		return pearls_byimprisoned.get(name);
+		return pearls_byimprisoned.get(normalizeName(name));
 	}
 	
 	public PrisonPearl getByImprisoned(Player player) {
-		return pearls_byimprisoned.get(player.getName());
+		return pearls_byimprisoned.get(normalizeName(player.getName()));
 	}
 	
 	public Integer getPearlCount(){
@@ -258,17 +262,17 @@ public class PrisonPearlStorage implements SaveLoad {
 	}
 	
 	boolean isImprisoned(String name) {
-		return pearls_byimprisoned.containsKey(name);
+		return pearls_byimprisoned.containsKey(normalizeName(name));
 	}
 	
 	boolean isImprisoned(Player player) {
-		return pearls_byimprisoned.containsKey(player.getName());
+		return pearls_byimprisoned.containsKey(normalizeName(player.getName()));
 	}
 	
 	public Integer getImprisonedCount(String[] names) {
 		Integer count = 0;
 		for (String name : names) {
-			if (pearls_byimprisoned.containsKey(name)) {
+			if (pearls_byimprisoned.containsKey(normalizeName(name))) {
 				count++;
 			}
 		}
@@ -278,7 +282,7 @@ public class PrisonPearlStorage implements SaveLoad {
 	public String[] getImprisonedNames(String[] names) {
 		List<String> iNames = new ArrayList<String>();
 		for (String name : names) {
-			if (pearls_byimprisoned.containsKey(name)) {
+			if (pearls_byimprisoned.containsKey(normalizeName(name))) {
 				iNames.add(name);
 			}
 		}

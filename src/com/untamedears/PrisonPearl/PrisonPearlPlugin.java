@@ -293,17 +293,19 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	// returns null if the curloc is an acceptable respawn location
 	private Location getRespawnLocation(Player player, Location curloc) {	
 		if (pearls.isImprisoned(player)) { // if player is imprisoned
-			if (summonman.isSummoned(player)) // if summoned
+			if (summonman.isSummoned(player)) { // if summoned
 				return null; // don't modify location
-			if (curloc.getWorld() != getPrisonWorld()) // but not in prison world
+            } else if (curloc.getWorld() != getPrisonWorld()) { // but not in prison world
 				return getPrisonSpawnLocation(); // should bre respawned in prison
+            }
 		} else if (curloc.getWorld() == getPrisonWorld() && !portalman.isPlayerPortaledToPrison(player)) { // not imprisoned, but spawning in prison?
-			if (player.getBedSpawnLocation() != null) // if he's got a bed
+			if (player.getBedSpawnLocation() != null) { // if he's got a bed
 				return player.getBedSpawnLocation(); // spawn him there
-			else if (getConfig().getBoolean("free_respawn")) // if we should respawn instead of tp to spawn
+            } else if (getConfig().getBoolean("free_respawn")) { // if we should respawn instead of tp to spawn
 				return RESPAWN_PLAYER; // kill the player
-			else
+            } else {
 				return getFreeWorld().getSpawnLocation(); // otherwise, respawn him at the spawn of the free world
+            }
 		}
 		
 		return null; // don't modify respawn location

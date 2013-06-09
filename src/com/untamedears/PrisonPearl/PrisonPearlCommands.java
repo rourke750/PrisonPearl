@@ -410,8 +410,9 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pearlman.imprisonPlayer(args[0], (Player)sender)) {
             sender.sendMessage("You imprisoned " + args[0]);
             Player player = Bukkit.getPlayerExact(args[0]);
-            if (player != null)
+            if (player != null) {
                 player.setHealth(0);
+            }
         } else {
             sender.sendMessage("You failed to imprison " + args[0]);
         }
