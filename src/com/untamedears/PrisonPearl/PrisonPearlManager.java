@@ -136,6 +136,7 @@ class PrisonPearlManager implements Listener {
 			pearls.deletePearl(pp);
 			return false;
 		}
+		pp.markMove();
 
 		// Create the inventory item
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
@@ -199,6 +200,7 @@ class PrisonPearlManager implements Listener {
 			if (pp == null) {
 				return new ItemStack(Material.ENDER_PEARL, 1);
 			}
+			pp.markMove();
 		}
 
 		return null;
@@ -211,6 +213,7 @@ class PrisonPearlManager implements Listener {
 		PrisonPearl pp = pearls.getByItemStack(event.getItem());
 		if (pp == null)
 			return;
+		pp.markMove();
 
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			Material m = event.getClickedBlock().getType();
@@ -257,7 +260,8 @@ class PrisonPearlManager implements Listener {
 			if (!item.getType().equals(Material.ENDER_PEARL)) {
 			   continue;
 			}
-			if (pearls.getByItemStack(item)==null){
+			PrisonPearl pp = pearls.getByItemStack(item);
+			if (pp==null){
 				continue;
 			}
 			inv.clear(slot);
@@ -280,9 +284,11 @@ class PrisonPearlManager implements Listener {
 		for (Entry<Integer, ? extends ItemStack> entry :
 				inv.all(Material.ENDER_PEARL).entrySet()) {
 			ItemStack item = entry.getValue();
-			if (pearls.getByItemStack(item) == null) {
+			PrisonPearl pp = pearls.getByItemStack(item);
+			if (pp == null) {
 				continue;
 			}
+			pp.markMove();
 			int slot = entry.getKey();
 			inv.clear(slot);
 			world.dropItemNaturally(loc, item);
@@ -408,7 +414,7 @@ class PrisonPearlManager implements Listener {
 		PrisonPearl pp = pearls.getByItemStack(item.getItemStack());
 		if (pp == null)
 			return;
-
+		pp.markMove();
 		updatePearl(pp, item);
 	}
 
@@ -418,7 +424,7 @@ class PrisonPearlManager implements Listener {
 		PrisonPearl pp = pearls.getByItemStack(event.getItem().getItemStack());
 		if (pp == null)
 			return;
-
+		pp.markMove();
 		updatePearl(pp, event.getPlayer());
 	}
 

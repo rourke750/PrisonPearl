@@ -449,6 +449,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
 	// Announce summon events
 	// Teleport player when summoned or returned
+	@SuppressWarnings("fallthrough")
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onSummonEvent(SummonEvent event) {
 		if (event.isCancelled())
