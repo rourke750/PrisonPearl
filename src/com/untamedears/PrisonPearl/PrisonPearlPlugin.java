@@ -32,6 +32,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -413,6 +414,27 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 	}
 
+    public void dropInventory(Player player, Location loc, boolean leavePearls) {
+		if (loc == null) {
+			loc = player.getLocation();
+		}
+		World world = loc.getWorld();
+		Inventory inv = player.getInventory();
+		int end = inv.getSize();
+		for (int i = 0; i < end; ++i) {
+			ItemStack item = inv.getItem(i);
+			if (item == null) {
+				continue;
+			}
+			if (leavePearls && item.getType().equals(Material.ENDER_PEARL)
+					&& item.getDurability() == 0) {
+				continue;
+			}
+			inv.clear(i);
+			world.dropItemNaturally(loc, item);
+		}
+	}
+
 	// Announce summon events
 	// Teleport player when summoned or returned
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -428,14 +450,25 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		switch (event.getType()) {
 		case SUMMONED:
 			player.sendMessage(ChatColor.RED+"You've been summoned to your prison pearl!");
-			player.teleport(fuzzLocation(event.getLocation()));
+			if (ppconfig.getPpsummonClearInventory()) {
+				Location oldLoc = player.getLocation();
+				player.teleport(fuzzLocation(event.getLocation()));
+				dropInventory(player, oldLoc, ppconfig.getPpsummonLeavePearls());
+			} else {
+				player.teleport(fuzzLocation(event.getLocation()));
+			}
 			break;
-			
+
 		case RETURNED:
-			player.sendMessage(ChatColor.RED+"You've been returned to your prison");
-			player.teleport(event.getLocation());
-			break;
-			
+			if (ppconfig.getPpreturnKills()) {
+				player.setHealth(0);
+				// Fall through to case KILLED
+			} else {
+				player.sendMessage(ChatColor.RED+"You've been returned to your prison");
+				player.teleport(event.getLocation());
+				break;
+			}
+
 		case KILLED:
 			player.sendMessage(ChatColor.RED+"You've been struck down by your pearl!");
 			break;
