@@ -32,6 +32,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -373,6 +374,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			updateAttachment(player);
 			
 			Player imprisoner = event.getImprisoner();
+			log.info(imprisoner.getDisplayName() + " has bound " + playerName + " to a PrisonPearl");
 			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
 			if (player != null) {
 				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
@@ -405,11 +407,33 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 			String[] alts = altsList.getAltsArray(playerName);
 			checkBans(alts);
-
+			
+			log.info(playerName + " was freed");
 			if (player != null) {
 				player.sendMessage("You've been freed!");
 				broadcastman.broadcast(player, playerName + " was freed!");
 			}
+		}
+	}
+
+    public void dropInventory(Player player, Location loc, boolean leavePearls) {
+		if (loc == null) {
+			loc = player.getLocation();
+		}
+		World world = loc.getWorld();
+		Inventory inv = player.getInventory();
+		int end = inv.getSize();
+		for (int i = 0; i < end; ++i) {
+			ItemStack item = inv.getItem(i);
+			if (item == null) {
+				continue;
+			}
+			if (leavePearls && item.getType().equals(Material.ENDER_PEARL)
+					&& item.getDurability() == 0) {
+				continue;
+			}
+			inv.clear(i);
+			world.dropItemNaturally(loc, item);
 		}
 	}
 
@@ -428,14 +452,25 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		switch (event.getType()) {
 		case SUMMONED:
 			player.sendMessage(ChatColor.RED+"You've been summoned to your prison pearl!");
-			player.teleport(fuzzLocation(event.getLocation()));
+			if (ppconfig.getPpsummonClearInventory()) {
+				Location oldLoc = player.getLocation();
+				player.teleport(fuzzLocation(event.getLocation()));
+				dropInventory(player, oldLoc, ppconfig.getPpsummonLeavePearls());
+			} else {
+				player.teleport(fuzzLocation(event.getLocation()));
+			}
 			break;
-			
+
 		case RETURNED:
-			player.sendMessage(ChatColor.RED+"You've been returned to your prison");
-			player.teleport(event.getLocation());
-			break;
-			
+			if (ppconfig.getPpreturnKills()) {
+				player.setHealth(0);
+				// Fall through to case KILLED
+			} else {
+				player.sendMessage(ChatColor.RED+"You've been returned to your prison");
+				player.teleport(event.getLocation());
+				break;
+			}
+
 		case KILLED:
 			player.sendMessage(ChatColor.RED+"You've been struck down by your pearl!");
 			break;
@@ -770,7 +805,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     		return;
     	}
     	File saveFile = new File(this.getDataFolder().getParentFile().getParentFile(), "text" + File.separator + "excluded_alts.txt");
-		FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
+		FileOutputStream fileOutputStream = new FileOutputStream(saveFile,true);
 		BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
     	for (String alt : alts)
     	{

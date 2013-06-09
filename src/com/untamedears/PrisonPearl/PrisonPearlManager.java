@@ -227,6 +227,7 @@ class PrisonPearlManager implements Listener {
 		event.setCancelled(true);
 
 		freePearl(pp);
+		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: " + player.getDisplayName() + " threw the pearl.");
 		player.sendMessage("You've freed " + pp.getImprisonedName());
 	}
 
@@ -297,6 +298,7 @@ class PrisonPearlManager implements Listener {
 		if (pp == null)
 			return;
 
+		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: PrisonPearl item despawned.");
 		freePearl(pp);
 	}
 
@@ -318,7 +320,10 @@ class PrisonPearlManager implements Listener {
 			Bukkit.getScheduler().callSyncMethod(plugin, new Callable<Void>() {
 						public Void call() throws Exception {
 							if (freePearl(pp))
+							{
+								plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Chunk with PrisonPearl unloaded.");
 								entity.remove();
+							}
 							return null;
 						}
 					});
@@ -338,6 +343,7 @@ class PrisonPearlManager implements Listener {
 		if (pp == null)
 			return;
 
+		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: PrisonPearl combusted(lava/fire).");
 		freePearl(pp);
 	}
 

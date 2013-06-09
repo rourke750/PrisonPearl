@@ -343,6 +343,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			int retval = HolderStateToInventory(pp, inv);
 			if (retval == HolderStateToInventory_BADCONTAINER) {
 				pearlman.freePearl(pp);
+				plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Freed during coal feed, container was corrupt.");
 				log+="\n freed:"+pp.getImprisonedName()+",reason:"+"badcontainer";
 				freedpearls++;
 				continue;
@@ -382,6 +383,7 @@ public class PrisonPearlStorage implements SaveLoad {
 				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
 			} else {
 				message = message + "\n Chest does not contain enough purestrain coal.";
+				plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Freed during coal feed, container did not have enough coal.");
 				pearlman.freePearl(pp);
 				log+="\n freed:"+pp.getImprisonedName()+",reason:"+"nocoal"+",location:"+pp.describeLocation();
 				freedpearls++;
