@@ -239,9 +239,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Location loc = player.getLocation();
 		Location newloc = getRespawnLocation(player, loc);
 		if (newloc != null) {
-			if (loc.getWorld() == getPrisonWorld() && (newloc.getWorld() != loc.getWorld() || newloc == RESPAWN_PLAYER))
+			if (loc.getWorld() == getPrisonWorld() && (newloc.getWorld() != loc.getWorld() || newloc == RESPAWN_PLAYER)) {
 				player.sendMessage("While away, you were freed!"); // he was freed offline
-			delayedTp(player, newloc);
+			}
+			delayedTp(player, newloc, ppconfig.getPpsummonClearInventory());
 		} else {
 			prisonMotd(player); 
 		}
@@ -256,7 +257,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
             Location toLoc = event.getTo();
 			if (toLoc != null && toLoc.getWorld() != getPrisonWorld()) {
 				prisonMotd(player);
-				delayedTp(player, getPrisonSpawnLocation());
+				delayedTp(player, getPrisonSpawnLocation(), false);
 			}
 		}
 	}
@@ -299,6 +300,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 				return getPrisonSpawnLocation(); // should bre respawned in prison
             }
 		} else if (curloc.getWorld() == getPrisonWorld() && !portalman.isPlayerPortaledToPrison(player)) { // not imprisoned, but spawning in prison?
+			// This indicates that the player was freed while logged out.
 			if (player.getBedSpawnLocation() != null) { // if he's got a bed
 				return player.getBedSpawnLocation(); // spawn him there
             } else if (getConfig().getBoolean("free_respawn")) { // if we should respawn instead of tp to spawn
@@ -393,23 +395,29 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 		} else if (event.getType() == PrisonPearlEvent.Type.FREED) {
 			updateAttachment(player);
-			if (player != null && !player.isDead() && player.getLocation().getWorld() == getPrisonWorld()) {
-				// if the player isn't dead and is in prison world
-				Location loc = null;
-				if (getConfig().getBoolean("free_tppearl")) // if we tp to pearl on players being freed
-					loc = fuzzLocation(pp.getLocation()); // get the location of the pearl
-				if (loc == null) // if we don't have a location yet
-					loc = getRespawnLocation(player, player.getLocation()); // get the respawn location for the player
-				
-				if (loc == RESPAWN_PLAYER) { // if we're supposed to respawn the player
-					player.setHealth(0); // kill him
-				} else {
-					player.teleport(loc); // otherwise teleport
+			if (player != null) {
+				Location currentLoc = player.getLocation();
+				if (!player.isDead() && currentLoc.getWorld() == getPrisonWorld()) {
+					// if the player isn't dead and is in prison world
+					Location loc = null;
+					if (getConfig().getBoolean("free_tppearl")) // if we tp to pearl on players being freed
+						loc = fuzzLocation(pp.getLocation()); // get the location of the pearl
+					if (loc == null) // if we don't have a location yet
+						loc = getRespawnLocation(player, currentLoc); // get the respawn location for the player
+
+					if (loc == RESPAWN_PLAYER) { // if we're supposed to respawn the player
+						player.setHealth(0); // kill him
+					} else {
+						player.teleport(loc); // otherwise teleport
+					}
+				}
+				if (ppconfig.getPpsummonClearInventory()) {
+					dropInventory(player, currentLoc, ppconfig.getPpsummonLeavePearls());
 				}
 			}
 			String[] alts = altsList.getAltsArray(playerName);
 			checkBans(alts);
-			
+
 			log.info(playerName + " was freed");
 			if (player != null) {
 				player.sendMessage("You've been freed!");
@@ -578,17 +586,25 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return newloc;
 	}
 	
-	private void delayedTp(final Player player, final Location loc) {
-		if (loc == RESPAWN_PLAYER) {
-			player.setHealth(0);
-		} else {
-			Bukkit.getScheduler().callSyncMethod(this, new Callable<Void>() {
-				public Void call() {
-					player.teleport(loc);
-					return null;
-				}
-			});
+	private void delayedTp(final Player player, final Location loc, final boolean dropInventory) {
+		if (dropInventory) {
 		}
+		final boolean respawn = loc == RESPAWN_PLAYER;
+		final Location oldLoc = player.getLocation();
+		if (respawn) {
+			player.setHealth(0);
+		}
+		Bukkit.getScheduler().callSyncMethod(this, new Callable<Void>() {
+			public Void call() {
+				if (!respawn) {
+					player.teleport(loc);
+				}
+				if (dropInventory) {
+					dropInventory(player, oldLoc, ppconfig.getPpsummonLeavePearls());
+				}
+				return null;
+			}
+		});
 	}
 
     @SuppressWarnings("SameReturnValue")
