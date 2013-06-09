@@ -198,6 +198,9 @@ public class PrisonPearlStorage implements SaveLoad {
 		int pearlslot = -1;
 		int pp_id = pp.getID();
 		for (int inv_idx = 0; inv_idx <= 1 && pearlslot == -1; ++inv_idx) {
+			 if (inv[inv_idx] == null) {
+				 continue;
+			 }
 			 HashMap<Integer, ? extends ItemStack> inv_contents = inv[inv_idx].all(Material.ENDER_PEARL);
 			 for (int inv_slot : inv_contents.keySet()) {
 				 ItemStack slot_item = inv_contents.get(inv_slot);

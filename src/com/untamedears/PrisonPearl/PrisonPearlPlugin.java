@@ -252,7 +252,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Player player = event.getPlayer();
 		
 		if (pearls.isImprisoned(player) && !summonman.isSummoned(player)) { // if in prison but not imprisoned
-			if (event.getTo().getWorld() != getPrisonWorld()) {
+            Location toLoc = event.getTo();
+			if (toLoc != null && toLoc.getWorld() != getPrisonWorld()) {
 				prisonMotd(player);
 				delayedTp(player, getPrisonSpawnLocation());
 			}
@@ -366,27 +367,30 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		
 		PrisonPearl pp = event.getPrisonPearl();
 		Player player = pp.getImprisonedPlayer();
-		if (player == null)
-			return;
+		String playerName = pp.getImprisonedName();
 		
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
 			updateAttachment(player);
 			
 			Player imprisoner = event.getImprisoner();
-			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + player.getDisplayName() + ChatColor.GREEN+" to a prison pearl!");
-			player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
+			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
+			if (player != null) {
+				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
+			}
 
-			String[] alts = altsList.getAltsArray(player.getName());
+			String[] alts = altsList.getAltsArray(playerName);
 			checkBans(alts);
 			
 		} else if (event.getType() == PrisonPearlEvent.Type.DROPPED || event.getType() == PrisonPearlEvent.Type.HELD) {
-			String loc = pp.describeLocation();
-			player.sendMessage(ChatColor.GREEN + "Your prison pearl is " + loc);
-			broadcastman.broadcast(player, ChatColor.GREEN + player.getName() + ": " + loc);
+			if (player != null) {
+				String loc = pp.describeLocation();
+				player.sendMessage(ChatColor.GREEN + "Your prison pearl is " + loc);
+				broadcastman.broadcast(player, ChatColor.GREEN + playerName + ": " + loc);
+			}
 		} else if (event.getType() == PrisonPearlEvent.Type.FREED) {
 			updateAttachment(player);
-			
-			if (!player.isDead() && player.getLocation().getWorld() == getPrisonWorld()) { // if the player isn't dead and is in prison world
+			if (player != null && !player.isDead() && player.getLocation().getWorld() == getPrisonWorld()) {
+				// if the player isn't dead and is in prison world
 				Location loc = null;
 				if (getConfig().getBoolean("free_tppearl")) // if we tp to pearl on players being freed
 					loc = fuzzLocation(pp.getLocation()); // get the location of the pearl
@@ -399,14 +403,16 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 					player.teleport(loc); // otherwise teleport
 				}
 			}
-			String[] alts = altsList.getAltsArray(player.getName());
+			String[] alts = altsList.getAltsArray(playerName);
 			checkBans(alts);
-			
-			player.sendMessage("You've been freed!");
-			broadcastman.broadcast(player, player.getDisplayName() + " was freed!");
+
+			if (player != null) {
+				player.sendMessage("You've been freed!");
+				broadcastman.broadcast(player, playerName + " was freed!");
+			}
 		}
 	}
-	
+
 	// Announce summon events
 	// Teleport player when summoned or returned
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -437,6 +443,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	}
 	
 	private void updateAttachment(Player player) {
+		if (player == null) {
+			return;
+		}
 		PermissionAttachment attachment = attachments.get(player.getName());
 		if (attachment == null) {
 			attachment = player.addAttachment(this);

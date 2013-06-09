@@ -1,6 +1,6 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 1.6.4
+version: 1.6.6
 soft-depend: [PhysicalShop, CombatTag]
 
 commands:
