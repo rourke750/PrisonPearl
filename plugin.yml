@@ -1,6 +1,6 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 1.6.7
+version: 1.6.8
 soft-depend: [PhysicalShop, CombatTag]
 
 commands:
@@ -212,3 +212,4 @@ permissions:
          prisonpearl.ppsave: true
          prisonpearl.getalts: true
          prisonpearl.setalts: true
+         prisonpearl.pploadalts: true

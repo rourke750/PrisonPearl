@@ -374,6 +374,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			updateAttachment(player);
 			
 			Player imprisoner = event.getImprisoner();
+			log.info(imprisoner.getDisplayName() + " has bound " + playerName + " to a PrisonPearl");
 			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
 			if (player != null) {
 				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
@@ -406,7 +407,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			}
 			String[] alts = altsList.getAltsArray(playerName);
 			checkBans(alts);
-
+			
+			log.info(playerName + " was freed");
 			if (player != null) {
 				player.sendMessage("You've been freed!");
 				broadcastman.broadcast(player, playerName + " was freed!");
@@ -803,7 +805,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     		return;
     	}
     	File saveFile = new File(this.getDataFolder().getParentFile().getParentFile(), "text" + File.separator + "excluded_alts.txt");
-		FileOutputStream fileOutputStream = new FileOutputStream(saveFile);
+		FileOutputStream fileOutputStream = new FileOutputStream(saveFile,true);
 		BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
     	for (String alt : alts)
     	{

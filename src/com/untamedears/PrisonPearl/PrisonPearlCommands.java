@@ -354,6 +354,7 @@ class PrisonPearlCommands implements CommandExecutor {
             if (!pp.verifyLocation()) {
                 System.err.println("PrisonPearl for " + pp.getImprisonedName() + " didn't validate, so is now set free");
                 pearlman.freePearl(pp);
+                plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Locate command returned a invalid pearl.");
             } else {
                 sender.sendMessage(ChatColor.GREEN + name_possesive + " prison pearl is " + pp.describeLocation());
                 if (sender instanceof Player && !any)
@@ -390,6 +391,7 @@ class PrisonPearlCommands implements CommandExecutor {
             }
         }
         if (pearlman.freePearl(pp)) {
+        	plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Freed via command by " + sender.getName());
             if (pp.getImprisonedPlayer() != sender) // when freeing yourself, you're already going to get a message
                 sender.sendMessage("You've freed " + pp.getImprisonedName());
         } else {
