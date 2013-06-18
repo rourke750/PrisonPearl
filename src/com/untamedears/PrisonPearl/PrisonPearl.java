@@ -102,11 +102,11 @@ public class PrisonPearl {
 			case HOPPER:
 				return "a hopper";
 			default:
-				System.err.println("PrisonPearl " + id + " is inside an unknown block");
+				PrisonPearlPlugin.info("PrisonPearl " + id + " is inside an unknown block " + getHolderBlockState().getType().toString());
 				return "an unknown block"; 
 			}
 		} else {
-			System.err.println("PrisonPearl " + id + " has no player, item, nor location");
+			PrisonPearlPlugin.info("PrisonPearl " + id + " has no player, item, nor location");
 			return "unknown"; 
 		}
 	}
@@ -130,7 +130,7 @@ public class PrisonPearl {
 		
 		return "held by " + getHolderName() + " at " + str;
 	}
-	
+
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean verifyLocation() {
 		// Return true if the pearl exists in a valid location
@@ -145,21 +145,39 @@ public class PrisonPearl {
 				if (entity == item)
 					return true;
 			}
-			
+			PrisonPearlPlugin.info(String.format(
+				"PP (%d, %s) failed verification: On ground not in chunk",
+				id, imprisonedname));
 			return false;
 		} else {
 			Inventory inv;
 			if (player != null) {
-				if (!player.isOnline())
+				if (!player.isOnline()) {
+					PrisonPearlPlugin.info(String.format(
+						"PP (%d, %s) failed verification: Jailor %s not online",
+						id, imprisonedname, player.getName()));
 					return false;
+				}
 				ItemStack cursoritem = player.getItemOnCursor();
 				if (cursoritem.getType() == Material.ENDER_PEARL && cursoritem.getDurability() == id)
 					return true;
 				inv = player.getInventory();
 			} else if (blocklocation != null) {
 				BlockState bs = getHolderBlockState();
-				if (!(bs instanceof InventoryHolder))
+				if (bs == null) {
+					PrisonPearlPlugin.info(String.format(
+						"PP (%d, %s) failed verification: BlockState is null",
+						id, imprisonedname));
 					return false;
+				}
+				if (!(bs instanceof InventoryHolder)) {
+					Location bsLoc = bs.getLocation();
+					PrisonPearlPlugin.info(String.format(
+						"PP (%d, %s) failed verification: %s not inventory at (%d,%d,%d)",
+						id, imprisonedname, bs.getType().toString(),
+						bsLoc.getBlockX(), bsLoc.getBlockY(), bsLoc.getBlockZ()));
+					return false;
+				}
 				inv = ((InventoryHolder)bs).getInventory();
 				for (HumanEntity viewer : inv.getViewers()) {
 					ItemStack cursoritem = viewer.getItemOnCursor();
@@ -167,17 +185,22 @@ public class PrisonPearl {
 						return true;
 				}
 			} else {
+				PrisonPearlPlugin.info(String.format(
+					"PP (%d, %s) failed verification: Has no player, item, nor location",
+					id, imprisonedname));
 				return false;
 			}
-				
 			for (ItemStack item : inv.all(Material.ENDER_PEARL).values()) {
 				if (item.getDurability() == id)
 					return true;
 			}
+			PrisonPearlPlugin.info(String.format(
+				"PP (%d, %s) failed verification: Not in inventory",
+				id, imprisonedname));
 			return false;
 		}
 	}
-	
+
 	public void setHolder(Player player) {
 		this.player = player;
 		item = null;

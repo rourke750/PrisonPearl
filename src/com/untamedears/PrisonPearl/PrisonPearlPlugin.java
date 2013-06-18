@@ -807,7 +807,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return ppconfig;
 	}
 
-    public void info(String msg) {
+    public static void info(String msg) {
         log.info(msg);
     }
     
