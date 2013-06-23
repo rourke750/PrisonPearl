@@ -363,16 +363,11 @@ class PrisonPearlManager implements Listener {
 		if (newitem != null)
 			event.setCurrentItem(newitem);
 
-		PrisonPearl pp;
-		if (!event.isShiftClick()) {
-			pp = pearls.getByItemStack(event.getCursor());
-		} else {
-			pp = pearls.getByItemStack(event.getCurrentItem());
-		}
-
-		if (pp == null)
+		PrisonPearl ppIn = pearls.getByItemStack(event.getCursor());
+		PrisonPearl ppOut = pearls.getByItemStack(event.getCurrentItem());
+		if (ppIn == null && ppOut == null) {
 			return;
-		pp.markMove();
+		}
 
 		InventoryView view = event.getView();
 		int rawslot = event.getRawSlot();
@@ -390,20 +385,29 @@ class PrisonPearlManager implements Listener {
 			holder = view.getBottomInventory().getHolder();
 		}
 
-		if (holder instanceof Chest) {
-			updatePearl(pp, (Chest) holder);
-		} else if (holder instanceof DoubleChest) {
-			updatePearl(pp, (Chest) ((DoubleChest) holder).getLeftSide());
-		} else if (holder instanceof Furnace) {
-			updatePearl(pp, (Furnace) holder);
-		} else if (holder instanceof Dispenser) {
-			updatePearl(pp, (Dispenser) holder);
-		} else if (holder instanceof BrewingStand) {
-			updatePearl(pp, (BrewingStand) holder);
-		} else if (holder instanceof Player) {
-			updatePearl(pp, (Player) holder);
-		} else {
-			event.setCancelled(true);
+		if (ppIn != null) {
+			ppIn.markMove();
+			if (holder instanceof Chest) {
+				updatePearl(ppIn, (Chest) holder);
+			} else if (holder instanceof DoubleChest) {
+				updatePearl(ppIn, (Chest) ((DoubleChest) holder).getLeftSide());
+			} else if (holder instanceof Furnace) {
+				updatePearl(ppIn, (Furnace) holder);
+			} else if (holder instanceof Dispenser) {
+				updatePearl(ppIn, (Dispenser) holder);
+			} else if (holder instanceof BrewingStand) {
+				updatePearl(ppIn, (BrewingStand) holder);
+			} else if (holder instanceof Player) {
+				updatePearl(ppIn, (Player) holder);
+			} else {
+				event.setCancelled(true);
+			}
+		}
+		if (ppOut != null) {
+			ppOut.markMove();
+			if (!event.isCancelled()) {
+				updatePearl(ppOut, (Player) event.getWhoClicked(), true);
+			}
 		}
 	}
 
@@ -436,7 +440,15 @@ class PrisonPearlManager implements Listener {
 	}
 
 	private void updatePearl(PrisonPearl pp, Player player) {
-		pp.setHolder(player);
+	    updatePearl(pp, player, false);
+	}
+
+	private void updatePearl(PrisonPearl pp, Player player, boolean isOnCursor) {
+		if (isOnCursor) {
+			pp.setCursorHolder(player);
+		} else {
+			pp.setHolder(player);
+		}
 		pearls.markDirty();
 		Bukkit.getPluginManager().callEvent(
 				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));

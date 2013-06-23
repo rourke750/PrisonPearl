@@ -22,6 +22,7 @@ public class PrisonPearl {
 	private Player player;
 	private Item item;
 	private Location blocklocation;
+	private boolean pearlOnCursor = false;
 	private long lastMoved = 0;
 	
 	public PrisonPearl(short id, String imprisonedname, Player holderplayer) {
@@ -158,6 +159,9 @@ public class PrisonPearl {
 						id, imprisonedname, player.getName()));
 					return false;
 				}
+				if (pearlOnCursor) {
+					return true;
+				}
 				ItemStack cursoritem = player.getItemOnCursor();
 				if (cursoritem.getType() == Material.ENDER_PEARL && cursoritem.getDurability() == id)
 					return true;
@@ -205,18 +209,28 @@ public class PrisonPearl {
 		this.player = player;
 		item = null;
 		blocklocation = null;
+		pearlOnCursor = false;
 	}
-	
+
+	public void setCursorHolder(Player player) {
+		this.player = player;
+		item = null;
+		blocklocation = null;
+		pearlOnCursor = true;
+	}
+
 	public <ItemBlock extends BlockState & InventoryHolder> void setHolder(ItemBlock blockstate) {
 		player = null;
 		item = null;
 		blocklocation = blockstate.getLocation();
+		pearlOnCursor = false;
 	}
 	
 	public void setHolder(Item item) {
 		player = null;
 		this.item = item;
 		blocklocation = null;
+		pearlOnCursor = false;
 	}
 
     public String getMotd() {
