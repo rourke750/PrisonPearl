@@ -67,12 +67,10 @@ public class PrisonPortaledPlayerManager implements Listener, SaveLoad {
 		dirty = false;
 	}
 	
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isPlayerPortaledToPrison(Player player) {
 		return isPlayerPortaledToPrison(player.getName());
 	}
 	
-	@SuppressWarnings("WeakerAccess")
     public boolean isPlayerPortaledToPrison(String playername) {
 		return portaled_players.contains(playername);
 	}

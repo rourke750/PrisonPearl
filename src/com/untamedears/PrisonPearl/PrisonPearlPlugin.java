@@ -8,13 +8,11 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
-import java.lang.Thread;
 
 import net.minecraft.server.v1_5_R3.Item;
 
@@ -31,7 +29,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
@@ -553,7 +555,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return null;
 	}
 	
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isObstructed(Location loc) {
 		Location ground = new Location(loc.getWorld(), loc.getX(), 100, loc.getZ());
 		while (ground.getBlockY() >= 1) {
@@ -608,7 +609,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		});
 	}
 
-    @SuppressWarnings("SameReturnValue")
     @EventHandler(priority=EventPriority.NORMAL)
     private boolean onPlayerChatEvent(AsyncPlayerChatEvent event) {
         if (summonman.isSummoned(event.getPlayer()) && !summonman.getSummon(event.getPlayer()).isCanSpeak()) {

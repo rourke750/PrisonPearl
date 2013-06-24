@@ -4,7 +4,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 public class PPConfig {
-	private final ConfigurationSection config;
 	private int upkeep_resource;
 	private int upkeep_quantity;
 	private boolean ppreturn_kills;
@@ -12,7 +11,6 @@ public class PPConfig {
 	private boolean ppsummon_leave_pearls;
 	
 	public PPConfig(ConfigurationSection config) {
-		this.config = config;
 		this.upkeep_resource = config.getInt("upkeep.resource");
 		this.upkeep_quantity = config.getInt("upkeep.quantity"); 
 		this.ppreturn_kills = config.getBoolean("ppreturn_kills", false);

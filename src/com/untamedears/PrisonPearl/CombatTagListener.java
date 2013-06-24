@@ -6,7 +6,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import com.topcat.npclib.entity.NPC;
-import com.trc202.CombatTag.CombatTag;
 import com.trc202.CombatTagEvents.NpcDespawnEvent;
 import com.trc202.CombatTagEvents.NpcDespawnReason;
 import com.trc202.Containers.PlayerDataContainer;

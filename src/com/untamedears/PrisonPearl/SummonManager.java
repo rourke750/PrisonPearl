@@ -203,14 +203,12 @@ public class SummonManager implements Listener, SaveLoad {
 		}
 	}
 	
-	@SuppressWarnings({"UnusedReturnValue", "SameParameterValue"})
-    private boolean summonEvent(PrisonPearl pp, @SuppressWarnings("SameParameterValue") SummonEvent.Type type) {
+    private boolean summonEvent(PrisonPearl pp, SummonEvent.Type type) {
 		SummonEvent event = new SummonEvent(pp, type);
 		Bukkit.getPluginManager().callEvent(event);
 		return !event.isCancelled();
 	}
 	
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean summonEvent(PrisonPearl pp, SummonEvent.Type type, Location loc) {
 		SummonEvent event = new SummonEvent(pp, type, loc);
 		Bukkit.getPluginManager().callEvent(event);

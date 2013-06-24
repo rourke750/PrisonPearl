@@ -31,7 +31,6 @@ public class PrisonPearl {
 		this.player = holderplayer;
 	}
 	
-	@SuppressWarnings("WeakerAccess")
     public PrisonPearl(short id, String imprisonedname, Location blocklocation) {
 		this.id = id;
 		this.imprisonedname = imprisonedname;
@@ -79,7 +78,6 @@ public class PrisonPearl {
 		return item;
 	}
 	
-	@SuppressWarnings("WeakerAccess")
     public String getHolderName() {
 		if (player != null) {
 			return player.getName();
@@ -132,7 +130,6 @@ public class PrisonPearl {
 		return "held by " + getHolderName() + " at " + str;
 	}
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean verifyLocation() {
 		// Return true if the pearl exists in a valid location
 		if (System.currentTimeMillis() - this.lastMoved < 2000) {
