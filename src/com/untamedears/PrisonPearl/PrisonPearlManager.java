@@ -358,8 +358,6 @@ class PrisonPearlManager implements Listener {
 	// Forbid pearls from being put in storage minecarts
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onInventoryClick(InventoryClickEvent event) {
-		System.out.println(event.getAction().name());
-		
 		// announce an prisonpearl if it is clicked
 		ItemStack newitem = announcePearl(
 			(Player) event.getWhoClicked(), event.getCurrentItem());
@@ -424,6 +422,28 @@ class PrisonPearlManager implements Listener {
 			if(pearl != null) {
 				pearl.markMove();
 				updatePearl(pearl, (Player) event.getWhoClicked());
+			}
+		}
+		else if (event.getAction() == InventoryAction.SWAP_WITH_CURSOR) {
+			PrisonPearl pearl = pearls.getByItemStack(event.getCursor());
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+			}
+			
+			if(event.isCancelled())
+				return;
+			
+			pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				pearl.markMove();
+				updatePearl(pearl, (Player) event.getWhoClicked(), true);
 			}
 		}
 		else {
