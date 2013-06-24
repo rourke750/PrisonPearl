@@ -10,6 +10,7 @@ import net.minecraft.server.v1_5_R3.MinecraftServer;
 import net.minecraft.server.v1_5_R3.PlayerInteractManager;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -25,6 +26,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -32,6 +34,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -40,8 +43,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
 class PrisonPearlManager implements Listener {
@@ -355,57 +358,98 @@ class PrisonPearlManager implements Listener {
 	// Forbid pearls from being put in storage minecarts
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onInventoryClick(InventoryClickEvent event) {
+		System.out.println(event.getAction().name());
+		
 		// announce an prisonpearl if it is clicked
 		ItemStack newitem = announcePearl(
 			(Player) event.getWhoClicked(), event.getCurrentItem());
 		if (newitem != null)
 			event.setCurrentItem(newitem);
-
-		PrisonPearl ppIn = pearls.getByItemStack(event.getCursor());
-		PrisonPearl ppOut = pearls.getByItemStack(event.getCurrentItem());
-		if (ppIn == null && ppOut == null) {
-			return;
+		
+		if(event.getAction() == InventoryAction.COLLECT_TO_CURSOR
+				|| event.getAction() == InventoryAction.PICKUP_ALL
+				|| event.getAction() == InventoryAction.PICKUP_HALF
+				|| event.getAction() == InventoryAction.PICKUP_ONE) {
+			PrisonPearl pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				pearl.markMove();
+				updatePearl(pearl, (Player) event.getWhoClicked(), true);
+			}
 		}
-
-		InventoryView view = event.getView();
-		int rawslot = event.getRawSlot();
-		// this means in the top inventory
-		boolean top = view.convertSlot(rawslot) == rawslot;
-		// for shift clicks, a click in the bottom moves item to the top and vice versa
-		if (event.isShiftClick()) {
-			top = !top; // so flip it
+		else if(event.getAction() == InventoryAction.PLACE_ALL
+				|| event.getAction() == InventoryAction.PLACE_SOME
+				|| event.getAction() == InventoryAction.PLACE_ONE) {	
+			PrisonPearl pearl = pearls.getByItemStack(event.getCursor());
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+			}
 		}
-
-		InventoryHolder holder;
-		if (top) {
-			holder = view.getTopInventory().getHolder();
-		} else {
-			holder = view.getBottomInventory().getHolder();
+		else if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+			PrisonPearl pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = !clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+			}
 		}
-
-		if (ppIn != null) {
-			ppIn.markMove();
-			if (holder instanceof Chest) {
-				updatePearl(ppIn, (Chest) holder);
-			} else if (holder instanceof DoubleChest) {
-				updatePearl(ppIn, (Chest) ((DoubleChest) holder).getLeftSide());
-			} else if (holder instanceof Furnace) {
-				updatePearl(ppIn, (Furnace) holder);
-			} else if (holder instanceof Dispenser) {
-				updatePearl(ppIn, (Dispenser) holder);
-			} else if (holder instanceof BrewingStand) {
-				updatePearl(ppIn, (BrewingStand) holder);
-			} else if (holder instanceof Player) {
-				updatePearl(ppIn, (Player) holder);
-			} else {
+		else if(event.getAction() == InventoryAction.HOTBAR_SWAP) {
+			PlayerInventory playerInventory = event.getWhoClicked().getInventory();
+			PrisonPearl pearl = pearls.getByItemStack(playerInventory.getItem(event.getHotbarButton()));
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+			}
+			
+			if(event.isCancelled())
+				return;
+			
+			pearl = pearls.getByItemStack(event.getCurrentItem());
+			
+			if(pearl != null) {
+				pearl.markMove();
+				updatePearl(pearl, (Player) event.getWhoClicked());
+			}
+		}
+		else {
+			if(pearls.getByItemStack(event.getCurrentItem()) != null || pearls.getByItemStack(event.getCursor()) != null) {
+				((Player) event.getWhoClicked()).sendMessage(ChatColor.RED + "Error: PrisonPearl doesn't support this inventory functionality quite yet!");
+				
 				event.setCancelled(true);
 			}
 		}
-		if (ppOut != null) {
-			ppOut.markMove();
-			if (!event.isCancelled()) {
-				updatePearl(ppOut, (Player) event.getWhoClicked(), true);
-			}
+	}
+	
+	private void updatePearlHolder(PrisonPearl pearl, InventoryHolder holder, Cancellable event) {
+		if (holder instanceof Chest) {
+			updatePearl(pearl, (Chest) holder);
+		} else if (holder instanceof DoubleChest) {
+			updatePearl(pearl, (Chest) ((DoubleChest) holder).getLeftSide());
+		} else if (holder instanceof Furnace) {
+			updatePearl(pearl, (Furnace) holder);
+		} else if (holder instanceof Dispenser) {
+			updatePearl(pearl, (Dispenser) holder);
+		} else if (holder instanceof BrewingStand) {
+			updatePearl(pearl, (BrewingStand) holder);
+		} else if (holder instanceof Player) {
+			updatePearl(pearl, (Player) holder);
+		} else {
+			event.setCancelled(true);
 		}
 	}
 
