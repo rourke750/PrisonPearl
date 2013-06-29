@@ -132,6 +132,10 @@ class PrisonPearlManager implements Listener {
 				imprisoner.getLocation() + ", " + dropStack.getAmount());
 		}
 
+		if (!imprisoner.hasPermission("prisonpearl.normal.pearlplayer")) {
+			return false;
+		}
+
 		// create the prison pearl
 		PrisonPearl pp = pearls.newPearl(imprisonedname, imprisoner);
 		// set off an event
