@@ -27,11 +27,17 @@ public class SummonManager implements Listener, SaveLoad {
 	
 	private final Map<String, Summon> summons;
 	private boolean dirty;
+    private final boolean canSpeakDefault;
+    private final boolean canDamageDefault;
+    private final boolean canBreakDefault;
 	
 	public SummonManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
 		this.plugin = plugin;
 		this.pearls = pearls;
-		
+        canSpeakDefault = plugin.getConfig().getBoolean("can_speak_default", true);
+        canDamageDefault = plugin.getConfig().getBoolean("can_damage_default", true);
+        canBreakDefault = plugin.getConfig().getBoolean("can_break_default", true);
+
 		summons = new HashMap<String, Summon>();
 		
 		Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -57,9 +63,9 @@ public class SummonManager implements Listener, SaveLoad {
 			Location loc = new Location(Bukkit.getWorld(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]));
 			int dist = parts.length >= 6 ? Integer.parseInt(parts[5]) : plugin.getConfig().getInt("summon_damage_radius");
             int damage = parts.length >= 7 ? Integer.parseInt(parts[6]) : plugin.getConfig().getInt("summon_damage_amt");
-            boolean canSpeak = parts.length >= 8 ? Boolean.parseBoolean(parts[7]) : true;
-            boolean canDamage = parts.length >= 9 ? Boolean.parseBoolean(parts[8]) : true;
-            boolean canBreak = parts.length == 10 ? Boolean.parseBoolean(parts[9]) : true;
+            boolean canSpeak = parts.length >= 8 ? Boolean.parseBoolean(parts[7]) : canSpeakDefault;
+            boolean canDamage = parts.length >= 9 ? Boolean.parseBoolean(parts[8]) : canDamageDefault;
+            boolean canBreak = parts.length == 10 ? Boolean.parseBoolean(parts[9]) : canBreakDefault;
             System.out.println(name + " " + loc + " " + dist + " " + damage + " " + canSpeak + " " + canDamage + " " + canBreak);
 
 			
@@ -120,7 +126,7 @@ public class SummonManager implements Listener, SaveLoad {
 		if (summons.containsKey(player.getName()))
 			return false;
 		
-		Summon summon = new Summon(player.getName(), player.getLocation().add(0, -.5, 0), plugin.getConfig().getInt("summon_damage_radius"), plugin.getConfig().getInt("summon_damage_amt"), true, true, true);
+		Summon summon = new Summon(player.getName(), player.getLocation().add(0, -.5, 0), plugin.getConfig().getInt("summon_damage_radius"), plugin.getConfig().getInt("summon_damage_amt"), canSpeakDefault, canDamageDefault, canBreakDefault);
 		summons.put(summon.getSummonedName(), summon);
 		
 		if (!summonEvent(pp, SummonEvent.Type.SUMMONED, pp.getLocation())) {
