@@ -2,6 +2,7 @@ package com.untamedears.PrisonPearl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
@@ -36,6 +37,7 @@ import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -353,11 +355,43 @@ class PrisonPearlManager implements Listener {
 		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: PrisonPearl combusted(lava/fire).");
 		freePearl(pp);
 	}
+	
+	
+	// Handle inventory dragging properly.
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onInventoryDrag(InventoryDragEvent event) {
+		if(event.isCancelled())
+			return;
+		
+		Map<Integer, ItemStack> items = event.getNewItems();
+		
+		for(Integer slot : items.keySet()) {
+			ItemStack item = items.get(slot);
+			
+			PrisonPearl pearl = pearls.getByItemStack(item);
+			
+			if(pearl != null) {
+				boolean clickedTop = event.getView().convertSlot(slot) == slot;
+				
+				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
+				
+				pearl.markMove();
+				updatePearlHolder(pearl, holder, event);
+				
+				if(event.isCancelled()) {
+					return;
+				}
+			}
+		}
+	}
 
 	// Track the location of a pearl
 	// Forbid pearls from being put in storage minecarts
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onInventoryClick(InventoryClickEvent event) {
+		if(event.isCancelled())
+			return;
+		
 		// announce an prisonpearl if it is clicked
 		ItemStack newitem = announcePearl(
 			(Player) event.getWhoClicked(), event.getCurrentItem());
@@ -389,7 +423,7 @@ class PrisonPearlManager implements Listener {
 				updatePearlHolder(pearl, holder, event);
 			}
 		}
-		else if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+		else if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {			
 			PrisonPearl pearl = pearls.getByItemStack(event.getCurrentItem());
 			
 			if(pearl != null) {
@@ -397,8 +431,10 @@ class PrisonPearlManager implements Listener {
 				
 				InventoryHolder holder = !clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
 				
-				pearl.markMove();
-				updatePearlHolder(pearl, holder, event);
+				if(holder.getInventory().firstEmpty() >= 0) {
+					pearl.markMove();
+					updatePearlHolder(pearl, holder, event);
+				}
 			}
 		}
 		else if(event.getAction() == InventoryAction.HOTBAR_SWAP) {
@@ -445,6 +481,12 @@ class PrisonPearlManager implements Listener {
 				pearl.markMove();
 				updatePearl(pearl, (Player) event.getWhoClicked(), true);
 			}
+		}
+		else if(event.getAction() == InventoryAction.DROP_ALL_CURSOR
+				|| event.getAction() == InventoryAction.DROP_ALL_SLOT
+				|| event.getAction() == InventoryAction.DROP_ONE_CURSOR
+				|| event.getAction() == InventoryAction.DROP_ONE_SLOT) {
+			// Handled by onItemSpawn
 		}
 		else {
 			if(pearls.getByItemStack(event.getCurrentItem()) != null || pearls.getByItemStack(event.getCursor()) != null) {
