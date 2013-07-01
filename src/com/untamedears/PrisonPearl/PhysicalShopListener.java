@@ -12,9 +12,7 @@ import com.wolvereness.physicalshop.ShopMaterial;
 import com.wolvereness.physicalshop.events.ShopInteractEvent;
 
 class PhysicalShopListener implements Listener {
-	@SuppressWarnings("WeakerAccess")
-    final
-    PrisonPearlStorage pearls;
+	final PrisonPearlStorage pearls;
 	
 	public PhysicalShopListener(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
 		this.pearls = pearls;

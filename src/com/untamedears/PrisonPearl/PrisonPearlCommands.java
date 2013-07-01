@@ -254,7 +254,6 @@ class PrisonPearlCommands implements CommandExecutor {
         return pp;
     }
 
-    @SuppressWarnings("SameReturnValue")
     private boolean setDistCmd(CommandSender sender, String args[]) {
         PrisonPearl pp = setCmd(sender, args);
         if (pp == null) {
@@ -675,7 +674,6 @@ class PrisonPearlCommands implements CommandExecutor {
         return false;
     }
 
-    @SuppressWarnings("SameReturnValue")
     private boolean kill() {
         return false;
     }

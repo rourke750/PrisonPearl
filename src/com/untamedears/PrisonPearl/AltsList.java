@@ -44,6 +44,8 @@ class AltsList {
                 }
 			}
 		}
+		
+		br.close();
 	}
 	
 	public String[] getAltsArray(String name){
