@@ -14,7 +14,7 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-import net.minecraft.server.v1_5_R3.Item;
+import net.minecraft.server.v1_6_R2.Item;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -408,7 +408,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 						loc = getRespawnLocation(player, currentLoc); // get the respawn location for the player
 
 					if (loc == RESPAWN_PLAYER) { // if we're supposed to respawn the player
-						player.setHealth(0); // kill him
+						player.setHealth(0.0); // kill him
 					} else {
 						player.teleport(loc); // otherwise teleport
 					}
@@ -476,7 +476,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
 		case RETURNED:
 			if (ppconfig.getPpreturnKills()) {
-				player.setHealth(0);
+				player.setHealth(0.0);
 				// Fall through to case KILLED
 			} else {
 				player.sendMessage(ChatColor.RED+"You've been returned to your prison");
@@ -594,7 +594,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		final boolean respawn = loc == RESPAWN_PLAYER;
 		final Location oldLoc = player.getLocation();
 		if (respawn) {
-			player.setHealth(0);
+			player.setHealth(0.0);
 		}
 		Bukkit.getScheduler().callSyncMethod(this, new Callable<Void>() {
 			public Void call() {

@@ -114,7 +114,7 @@ public class SummonManager implements Listener, SaveLoad {
 			Location playerloc = player.getLocation();
 			
 			if (pploc.getWorld() != playerloc.getWorld() || pploc.distance(playerloc) > summon.getAllowedDistance())
-				player.damage(summon.getDamageAmount());
+				player.damage((double)summon.getDamageAmount());
 		}
 	}
 	
@@ -162,7 +162,7 @@ public class SummonManager implements Listener, SaveLoad {
 			return false;
 		}
 		
-		pp.getImprisonedPlayer().setHealth(0);
+		pp.getImprisonedPlayer().setHealth(0.0);
 		dirty = true;
 		return true;
 	}
