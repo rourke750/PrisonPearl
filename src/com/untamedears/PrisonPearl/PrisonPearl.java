@@ -145,6 +145,8 @@ public class PrisonPearl {
 				return "a dropper";
 			case HOPPER:
 				return "a hopper";
+			case ENDER_CHEST:
+				return "a chest";
 			default:
 				PrisonPearlPlugin.info("PrisonPearl " + id + " is inside an unknown block " + getHolderBlockState(holder).getType().toString());
 				return "an unknown block"; 
@@ -276,6 +278,14 @@ public class PrisonPearl {
 
     public <ItemBlock extends BlockState & InventoryHolder> void setHolder(ItemBlock blockstate) {
         this.holders.addFirst(new Holder(blockstate.getLocation()));
+        this.pearlOnCursor = false;
+        while (this.holders.size() > PrisonPearl.HOLDER_COUNT) {
+            this.holders.removeLast();
+        }
+    }
+    
+    public void setHolder(Location location) {
+        this.holders.addFirst(new Holder(location));
         this.pearlOnCursor = false;
         while (this.holders.size() > PrisonPearl.HOLDER_COUNT) {
             this.holders.removeLast();

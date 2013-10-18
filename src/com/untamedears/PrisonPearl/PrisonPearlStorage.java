@@ -30,6 +30,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.untamedears.EnderExpansion.Enderplugin;
+
 public class PrisonPearlStorage implements SaveLoad {
 	private PrisonPearlPlugin plugin;
 	private final Map<Short, PrisonPearl> pearls_byid;
@@ -154,10 +156,17 @@ public class PrisonPearlStorage implements SaveLoad {
 			return HolderStateToInventory_BADPARAM;
 		}
 		BlockState inherentViolence = pp.getHolderBlockState();
+		if (Bukkit.getPluginManager().isPluginEnabled("EnderExpansion")){
+			if (pp.getLocation().getBlock().getType() == Material.ENDER_CHEST){
+				inv[0] = Enderplugin.getchestInventory(pp.getLocation());
+				return HolderStateToInventory_SUCCESS;
+			}
+		}
 		if (inherentViolence == null) {
 			return HolderStateToInventory_NULLSTATE;
 		}
 		Material mat = inherentViolence.getType();
+		
 		switch(mat) {
 		case FURNACE:
 			inv[0] = ((Furnace)inherentViolence).getInventory();

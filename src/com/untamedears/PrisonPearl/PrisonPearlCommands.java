@@ -144,6 +144,7 @@ class PrisonPearlCommands implements CommandExecutor {
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.normal.ppsetmotd");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppfeed")) {
+        	pearlman.prisonCommandEvent("ppfeed");
             return feedCmd(sender, args, false);
 
         } else if (label.equalsIgnoreCase("pprestore")) {

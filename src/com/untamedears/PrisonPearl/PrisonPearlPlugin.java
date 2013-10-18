@@ -14,7 +14,7 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-import net.minecraft.server.v1_6_R2.Item;
+import net.minecraft.server.v1_6_R3.Item;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -43,12 +43,14 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private PPConfig ppconfig;
 
 	private PrisonPearlStorage pearls;
+	private EnderExpansion ee;
 	private DamageLogManager damageman;
-	private PrisonPearlManager pearlman;
+	public static PrisonPearlManager pearlman;
 	private SummonManager summonman;
 	private PrisonPortaledPlayerManager portalman;
 	private BroadcastManager broadcastman;
 	private AltsList altsList;
+	private static File data;
 	private static Logger log;
 	private static final Integer maxImprisonedAlts = 2;
 	//private static long loginDelay = 10*60*1000;
@@ -64,6 +66,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
+		File dat = getDataFolder();
+		data=dat;
 	try {
     	    Metrics metrics = new Metrics(this);// Metrics support
     	    metrics.start();
@@ -85,14 +89,14 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		load(pearls, getPrisonPearlsFile());
 		
 		damageman = new DamageLogManager(this);
-		pearlman = new PrisonPearlManager(this, pearls);
+		ee= new EnderExpansion(pearls);
+		pearlman = new PrisonPearlManager(this, pearls, ee);
 		summonman = new SummonManager(this, pearls);
 		load(summonman, getSummonFile());
 		portalman = new PrisonPortaledPlayerManager(this, pearls);
 		load(portalman, getPortaledPlayersFile());
 		broadcastman = new BroadcastManager();
 		combatTagManager = new CombatTagManager(this.getServer(), log);
-
 		loadAlts();
 		checkBanAllAlts();
 	
@@ -110,6 +114,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}, 0, getConfig().getLong("save_ticks"));
 		
 		PrisonPearlCommands commands = new PrisonPearlCommands(this, damageman, pearls, pearlman, summonman, broadcastman);
+		
 		for (String command : getDescription().getCommands().keySet()) {
 			if (command.equals("ppkill") && !getConfig().getBoolean("ppkill_enabled"))
 				continue;
@@ -198,8 +203,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 	}
 
-	private File getPrisonPearlsFile() {
-		return new File(getDataFolder(), "prisonpearls.txt");
+	private static File getPrisonPearlsFile() {
+		return new File(data, "prisonpearls.txt");
 	}
 	
 	private File getSummonFile() {
@@ -848,5 +853,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     		}
     	}
     	return false;
+    }
+    public static PrisonPearlManager getPrisonPearlManager(){
+    	
+    	return pearlman;
     }
 }

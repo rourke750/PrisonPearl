@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
-import net.minecraft.server.v1_6_R2.EntityPlayer;
-import net.minecraft.server.v1_6_R2.MinecraftServer;
-import net.minecraft.server.v1_6_R2.PlayerInteractManager;
-import org.bukkit.craftbukkit.v1_6_R2.CraftServer;
+import net.minecraft.server.v1_6_R3.EntityPlayer;
+import net.minecraft.server.v1_6_R3.MinecraftServer;
+import net.minecraft.server.v1_6_R3.PlayerInteractManager;
+import org.bukkit.craftbukkit.v1_6_R3.CraftServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,6 +38,7 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -52,11 +53,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 class PrisonPearlManager implements Listener {
 	private final PrisonPearlPlugin plugin;
 	private final PrisonPearlStorage pearls;
+	private EnderExpansion ee;
 
-	public PrisonPearlManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls) {
+	public PrisonPearlManager(PrisonPearlPlugin plugin, PrisonPearlStorage pearls, EnderExpansion ee) {
 		this.plugin = plugin;
 		this.pearls = pearls;
-
+		this.ee = ee;
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
 
@@ -422,9 +424,15 @@ class PrisonPearlManager implements Listener {
 				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
 				
 				InventoryHolder holder = clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
-				
+				if (holder==null){
+					Player player=pearl.getHolderPlayer();
+					pearl.markMove();
+					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(null, 5).getLocation());
+				}
+				else{
 				pearl.markMove();
 				updatePearlHolder(pearl, holder, event);
+				}
 			}
 		}
 		else if(event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {			
@@ -434,8 +442,12 @@ class PrisonPearlManager implements Listener {
 				boolean clickedTop = event.getView().convertSlot(event.getRawSlot()) == event.getRawSlot();
 				
 				InventoryHolder holder = !clickedTop ? event.getView().getTopInventory().getHolder() : event.getView().getBottomInventory().getHolder();
-				
-				if(holder.getInventory().firstEmpty() >= 0) {
+				if (holder==null){
+					Player player=pearl.getHolderPlayer();
+					pearl.markMove();
+					ee.updateEnderStoragePrison(pearl, event, player.getTargetBlock(null, 5).getLocation());
+				}
+				else if(holder.getInventory().firstEmpty() >= 0) {
 					pearl.markMove();
 					updatePearlHolder(pearl, holder, event);
 				}
@@ -502,6 +514,7 @@ class PrisonPearlManager implements Listener {
 	}
 	
 	private void updatePearlHolder(PrisonPearl pearl, InventoryHolder holder, Cancellable event) {
+		
 		if (holder instanceof Chest) {
 			updatePearl(pearl, (Chest) holder);
 		} else if (holder instanceof DoubleChest) {
@@ -514,10 +527,11 @@ class PrisonPearlManager implements Listener {
 			updatePearl(pearl, (BrewingStand) holder);
 		} else if (holder instanceof Player) {
 			updatePearl(pearl, (Player) holder);
-		} else {
+		}else {
 			event.setCancelled(true);
 		}
 	}
+	
 
 	// Track the location of a pearl if it spawns as an item for any reason
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -569,6 +583,8 @@ class PrisonPearlManager implements Listener {
 		Bukkit.getPluginManager().callEvent(
 				new PrisonPearlEvent(pp, PrisonPearlEvent.Type.HELD));
 	}
+	
+	
 
 	private boolean prisonPearlEvent(PrisonPearl pp, PrisonPearlEvent.Type type) {
 		return prisonPearlEvent(pp, type, null);
@@ -580,7 +596,11 @@ class PrisonPearlManager implements Listener {
 		Bukkit.getPluginManager().callEvent(event);
 		return !event.isCancelled();
 	}
-
+	public boolean prisonCommandEvent(String command){
+		PrisonCommandEvent event= new PrisonCommandEvent(command);
+		Bukkit.getPluginManager().callEvent(event);
+		return !event.isCancelled();
+	}
 	private Configuration getConfig() {
 		return plugin.getConfig();
 	}
