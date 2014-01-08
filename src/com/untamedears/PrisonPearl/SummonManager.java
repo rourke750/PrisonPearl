@@ -95,6 +95,7 @@ public class SummonManager implements Listener, SaveLoad {
 	}
 	
 	private void inflictSummonDamage() {
+        Map<Player, Double> inflictDmg = new HashMap<Player, Double>();
 		Iterator<Entry<String, Summon>> i = summons.entrySet().iterator();
 		while (i.hasNext()) {
 			Summon summon = i.next().getValue();
@@ -113,9 +114,15 @@ public class SummonManager implements Listener, SaveLoad {
 			Location pploc = pp.getLocation();
 			Location playerloc = player.getLocation();
 			
-			if (pploc.getWorld() != playerloc.getWorld() || pploc.distance(playerloc) > summon.getAllowedDistance())
-				player.damage((double)summon.getDamageAmount());
+			if (pploc.getWorld() != playerloc.getWorld() || pploc.distance(playerloc) > summon.getAllowedDistance()) {
+                inflictDmg.put(player, (double)summon.getDamageAmount());
+            }
 		}
+        for (Map.Entry<Player, Double> entry : inflictDmg.entrySet()) {
+            final Player player = entry.getKey();
+            final Double damage = entry.getValue();
+			player.damage(damage);
+        }
 	}
 	
 	public boolean summonPearl(PrisonPearl pp) {
