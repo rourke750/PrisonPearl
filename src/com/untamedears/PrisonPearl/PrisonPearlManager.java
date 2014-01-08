@@ -6,11 +6,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
-import net.minecraft.server.v1_6_R3.EntityPlayer;
-import net.minecraft.server.v1_6_R3.MinecraftServer;
-import net.minecraft.server.v1_6_R3.PlayerInteractManager;
-import org.bukkit.craftbukkit.v1_6_R3.CraftServer;
+import net.minecraft.server.v1_7_R1.EntityPlayer;
+import net.minecraft.server.v1_7_R1.MinecraftServer;
+import net.minecraft.server.v1_7_R1.PlayerInteractManager;
+import net.minecraft.util.com.mojang.authlib.GameProfile;
 
+import org.bukkit.craftbukkit.v1_7_R1.CraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -249,8 +250,9 @@ class PrisonPearlManager implements Listener {
 		Player player = plugin.getServer().getPlayer(plrname);
 		if (player == null) { // If player is offline
 			MinecraftServer server = ((CraftServer)plugin.getServer()).getServer();
+			GameProfile prof = new GameProfile(null, plrname);
 			EntityPlayer entity = new EntityPlayer(
-				server, server.getWorldServer(0), plrname,
+				server, server.getWorldServer(0), prof,
 				new PlayerInteractManager(server.getWorldServer(0)));
 			player = (entity == null) ? null : (Player) entity.getBukkitEntity();
 			if (player == null) {

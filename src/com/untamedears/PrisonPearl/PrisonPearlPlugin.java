@@ -14,8 +14,8 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-import net.minecraft.server.v1_6_R3.Item;
-
+import net.minecraft.server.v1_7_R1.Item;
+import net.minecraft.server.v1_7_R1.RegistryMaterials;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -128,7 +128,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			Method method = Item.class.getDeclaredMethod("a", boolean.class);
 			if (method.getReturnType() == Item.class) {
 				method.setAccessible(true);
-				method.invoke(Item.ENDER_PEARL, true);
+				method.invoke(Item.REGISTRY.a("ender_pearl"), true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
