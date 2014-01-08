@@ -260,7 +260,14 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pp == null) {
             return false;
         }
-        summonman.getSummon(pp.getImprisonedName()).setAllowedDistance(Integer.parseInt(args[0]));
+        int dist;
+        try {
+            dist = Integer.parseInt(args[0]);
+        } catch (Exception ex) {
+            sender.sendMessage("Invalid distance " + args[0]);
+            return false;
+        }
+        summonman.getSummon(pp.getImprisonedName()).setAllowedDistance(dist);
         sender.sendMessage(pp.getImprisonedName() + "'s allowed distance set to " + args[0]);
         return true;
     }
@@ -270,7 +277,14 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pp == null) {
             return false;
         }
-        summonman.getSummon(pp.getImprisonedName()).setDamageAmount(Integer.parseInt(args[0]));
+        int dmg;
+        try {
+            dmg = Integer.parseInt(args[0]);
+        } catch (Exception ex) {
+            sender.sendMessage("Invalid damage " + args[0]);
+            return false;
+        }
+        summonman.getSummon(pp.getImprisonedName()).setDamageAmount(dmg);
         sender.sendMessage(pp.getImprisonedName() + "'s damage amount set to " + args[0]);
         return true;
     }
