@@ -260,6 +260,10 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pp == null) {
             return false;
         }
+        if (args[0] == null){
+            sender.sendMessage("Can't leave distance as null, please enter a number");
+            return true;
+        }
         int dist;
         try {
             dist = Integer.parseInt(args[0]);
