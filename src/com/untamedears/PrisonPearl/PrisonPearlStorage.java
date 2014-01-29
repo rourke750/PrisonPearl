@@ -67,6 +67,9 @@ public class PrisonPearlStorage implements SaveLoad {
 		
 		String line;
 		while ((line = br.readLine()) != null) {
+			if (line.length() <= 0) {
+				continue;
+			}
 			String parts[] = line.split(" ");
 			short id = Short.parseShort(parts[0]);
 			String imprisoned = parts[1];
