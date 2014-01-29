@@ -160,7 +160,10 @@ class PrisonPearlCommands implements CommandExecutor {
                 return setAlts(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.setalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
-        }return false;
+        } else if (label.equalsIgnoreCase("pplistbans")) {
+            return listBans(sender, args);
+        }
+        return false;
     }
 
     private boolean setAlts(CommandSender sender, String[] args) {
@@ -691,6 +694,32 @@ class PrisonPearlCommands implements CommandExecutor {
             return true;
         }
         return false;
+    }
+
+    private boolean listBans(CommandSender sender, String[] args) {
+        String search = null;
+        if (args.length >= 1) {
+            search = args[0].toLowerCase();
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Bans: ");
+        boolean first = true;
+        for (String playerName : plugin.getBanManager().listBannedPlayers()) {
+            if (search == null || playerName.contains(search)) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(playerName);
+            }
+        }
+        if (first) {
+            sender.sendMessage("No matching bans.");
+        } else {
+            sender.sendMessage(sb.toString());
+        }
+        return true;
     }
 
     private boolean kill() {

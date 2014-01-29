@@ -50,6 +50,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private PrisonPortaledPlayerManager portalman;
 	private BroadcastManager broadcastman;
 	private AltsList altsList;
+	private BanManager banManager_;
 	private static File data;
 	private static Logger log;
 	private static final Integer maxImprisonedAlts = 2;
@@ -57,7 +58,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private static final String kickMessage = "You have too many imprisoned alts! If you think this is an error, please message the mods on /r/civcraft";
 	//private static String delayMessage = "You cannot switch alt accounts that quickly, please wait ";
 	private HashMap<String, Long> lastLoggout;
-	private HashMap<String, Boolean> banned;
 	
 	private CombatTagManager combatTagManager;
 	
@@ -83,8 +83,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		
 		//lastLoggout = new HashMap<String, Long>();
 		//wasKicked = new HashMap<String, Boolean>();
-		banned = new HashMap<String, Boolean>();
-		
+		banManager_ = new BanManager(this);
+		banManager_.setBanMessage(kickMessage);
+		banManager_.initialize();
+
 		pearls = new PrisonPearlStorage(this);
 		load(pearls, getPrisonPearlsFile());
 		
@@ -151,8 +153,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
 	public void onDisable() {
 		saveAll(true);
-		unBanAll();
-		
 		for (PermissionAttachment attachment : attachments.values())
 			attachment.remove();
 	}
@@ -659,41 +659,31 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     }
 
 	public void loadAlts() {
+		log.info("Loading alts");
 		if (altsList == null) {
 			altsList = new AltsList();
 		}
 		altsList.load(getAltsListFile());
 	}
-	
+
 	public void checkBanAllAlts() {
 		if (altsList != null) {
+			log.info("Checking and banning all alts");
 			Integer bannedCount = 0, unbannedCount = 0, total = 0, result;
-            for (String name : altsList.getAllNames()) {
-                //log.info("checking "+name);
-                result = checkBan(name);
-                total++;
-                if (result == 2) {
-                    bannedCount++;
-                } else if (result == 1) {
-                    unbannedCount++;
-                }
-            }
+			for (String name : altsList.getAllNames()) {
+				//log.info("checking "+name);
+				result = checkBan(name);
+				total++;
+				if (result == 2) {
+					bannedCount++;
+				} else if (result == 1) {
+					unbannedCount++;
+				}
+			}
 			log.info("checked "+total+" accounts, banned "+bannedCount+" accounts, unbanned "+unbannedCount+" accounts");
 		}
 	}
-	
-	void unBanAll() {
-		Server s = this.getServer();
-		String name;
-        for (String s1 : banned.keySet()) {
-            name = s1;
-            if (banned.get(name)) {
-                s.getOfflinePlayer(name).setBanned(false);
-                log.info("unbanning " + name);
-            }
-        }
-	}
-	
+
 	//gets the most recent time an alt account has logged out (returns 0 if there are none recorded)
 	private Long getMostRecentAltLogout(String[] alts) {
 		Long time = (long) 0;
@@ -708,8 +698,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
         }
 		return time;
 	}
-	
-	private int checkBan(String name) {
+
+	public int checkBan(String name) {
 		//log.info("checking "+name);
 		String[] alts = altsList.getAltsArray(name);
 		Integer pearledCount = pearls.getImprisonedCount(alts);
@@ -723,33 +713,40 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		if (pearledCount > maxImprisonedAlts && pearls.isImprisoned(name)) {
 			int count = 0;
-            for (String imprisonedName : imprisonedNames) {
-                if (imprisonedName.compareTo(name) < 0) {
-                    count++;
-                }
-                if (count >= maxImprisonedAlts) {
-                    banAndKick(name, pearledCount, names);
-                    return 2;
-                }
-            }
+			for (String imprisonedName : imprisonedNames) {
+				if (imprisonedName.compareTo(name) < 0) {
+					count++;
+				}
+				if (count >= maxImprisonedAlts) {
+					banAndKick(name, pearledCount, names);
+					return 2;
+				}
+			}
 		} else if (pearledCount.equals(maxImprisonedAlts) || (pearledCount > maxImprisonedAlts && !pearls.isImprisoned(name))) {
 			banAndKick(name,pearledCount,names);
 			return 2;
-		} else if (banned.containsKey(name) && banned.get(name)) {
-			this.getServer().getOfflinePlayer(name).setBanned(false);
-			banned.put(name, false);
+		} else if (banManager_.isBanned(name)) {
+			if (pearledCount <= 0) {
+				log.info("pardoning "+name+" for having no imprisoned alts");
+			} else {
+				log.info("pardoning "+name+" who only has "+pearledCount+" imprisoned alts");
+			}
+			banManager_.pardon(name);
 			return 1;
 		}
 		return 0;
 	}
-	
+
 	private void banAndKick(String name, int pearledCount, String names) {
-		this.getServer().getOfflinePlayer(name).setBanned(true);
 		Player p = this.getServer().getPlayer(name);
 		if (p != null) {
 			p.kickPlayer(kickMessage);
 		}
-		banned.put(name, true);
+		if (banManager_.isBanned(name)) {
+			log.info(name+" still banned for having "+pearledCount+" imprisoned alts: "+names);
+			return;
+		}
+		banManager_.ban(name);
 		log.info("banning "+name+" for having "+pearledCount+" imprisoned alts: "+names);
 	}
 	
@@ -770,26 +767,21 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
             }
             pearledCount = pearls.getImprisonedCount(alts);
             if (pearledCount >= maxImprisonedAlts) {
-                this.getServer().getOfflinePlayer(name).setBanned(true);
+                banManager_.ban(name);
                 Player p = this.getServer().getPlayer(name);
                 if (p != null) {
                     p.kickPlayer(kickMessage);
                 }
-                banned.put(name, true);
                 log.info("banning " + name + ", for having " + pearledCount + " imprisoned alts: " + iNames);
-            } else if (banned.containsKey(name) && banned.get(name).equals(Boolean.TRUE)) {
-                this.getServer().getOfflinePlayer(name).setBanned(false);
-                banned.put(name, false);
+            } else if (banManager_.isBanned(name)) {
+                banManager_.pardon(name);
                 log.info("unbanning " + name + ", no longer has too many imprisoned alts.");
             }
         }
 	}
 	
 	public boolean isTempBanned(String name) {
-		if (banned.containsKey(name)) {
-			return banned.get(name);
-		}
-		return false;
+		return banManager_.isBanned(name);
 	}
 	
 	public int getImprisonedCount(String name) {
@@ -857,5 +849,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     public static PrisonPearlManager getPrisonPearlManager(){
     	
     	return pearlman;
+    }
+
+    public BanManager getBanManager() {
+        return banManager_;
     }
 }
