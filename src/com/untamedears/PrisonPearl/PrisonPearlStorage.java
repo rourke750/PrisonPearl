@@ -300,6 +300,10 @@ public class PrisonPearlStorage implements SaveLoad {
 		return results;
 	}
 
+	public List<String> getImprisonedNames() {
+		return new ArrayList<String>(pearls_byimprisoned.keySet());
+	}
+
 	public boolean upgradePearl(Inventory inv, PrisonPearl pp) {
 		final String prisoner = pp.getImprisonedName();
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());

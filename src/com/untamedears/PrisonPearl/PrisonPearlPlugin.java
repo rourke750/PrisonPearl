@@ -68,19 +68,19 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public void onEnable() {
 		File dat = getDataFolder();
 		data=dat;
-	try {
-    	    Metrics metrics = new Metrics(this);// Metrics support
-    	    metrics.start();
-    	} catch (IOException e) {
-    	    // Failed to submit the stats :-(
-    	}
+		try {
+		    Metrics metrics = new Metrics(this);// Metrics support
+		    metrics.start();
+		} catch (IOException e) {
+		    // Failed to submit the stats :-(
+		}
 		getConfig().options().copyDefaults(true);
 		saveConfig();
-		
+
 		ppconfig = new PPConfig(getConfig());
-		
+
 		log = this.getLogger();
-		
+
 		//lastLoggout = new HashMap<String, Long>();
 		//wasKicked = new HashMap<String, Boolean>();
 		banManager_ = new BanManager(this);
@@ -89,7 +89,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
 		pearls = new PrisonPearlStorage(this);
 		load(pearls, getPrisonPearlsFile());
-		
+
 		damageman = new DamageLogManager(this);
 		ee= new EnderExpansion(pearls);
 		pearlman = new PrisonPearlManager(this, pearls, ee);
@@ -101,20 +101,24 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		combatTagManager = new CombatTagManager(this.getServer(), log);
 		loadAlts();
 		checkBanAllAlts();
-	
-		
+		Bukkit.getScheduler().runTask(this, new Runnable() {
+			public void run() {
+				altsList.queryForUpdatedAltLists(pearls.getImprisonedNames());
+			}
+		});
+
 		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))
 			new PhysicalShopListener(this, pearls);
 		if (Bukkit.getPluginManager().isPluginEnabled("CombatTag"))
 			new CombatTagListener(this, pearlman);
-		
+
 		Bukkit.getPluginManager().registerEvents(this, this);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			public void run() {
 				saveAll(false);
 			}
 		}, 0, getConfig().getLong("save_ticks"));
-		
+
 		PrisonPearlCommands commands = new PrisonPearlCommands(this, damageman, pearls, pearlman, summonman, broadcastman);
 		
 		for (String command : getDescription().getCommands().keySet()) {
@@ -237,12 +241,18 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	@EventHandler(priority=EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		final Player player = event.getPlayer();
+		final String playerName = player.getName();
 		updateAttachment(player);
-		checkBan(player.getName());
-		
+		checkBan(playerName);
+		// This call is async to retrieve a potential alts list. If no list
+		//  is cached and a list is returned, the altsList will handle calling
+		//  checkBan across the updated lists. We just need to make sure that
+		//  a list is queued for retrieval, if applicable.
+		altsList.cacheAltListFor(playerName);
+
 		if (player.isDead())
 			return;
-		
+
 		Location loc = player.getLocation();
 		Location newloc = getRespawnLocation(player, loc);
 		if (newloc != null) {
@@ -661,7 +671,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public void loadAlts() {
 		log.info("Loading alts");
 		if (altsList == null) {
-			altsList = new AltsList();
+			altsList = new AltsList(this);
 		}
 		altsList.load(getAltsListFile());
 	}
