@@ -40,6 +40,8 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PrisonPearlPlugin extends JavaPlugin implements Listener {
+    private static PrisonPearlPlugin globalInstance = null;
+
 	private PPConfig ppconfig;
 
 	private PrisonPearlStorage pearls;
@@ -66,6 +68,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
+        globalInstance = this;
 		File dat = getDataFolder();
 		data=dat;
 		try {
@@ -159,6 +162,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		saveAll(true);
 		for (PermissionAttachment attachment : attachments.values())
 			attachment.remove();
+        globalInstance = null;
 	}
 	
 	public void saveAll(boolean force) {
@@ -816,6 +820,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
     public static void info(String msg) {
         log.info(msg);
+    }
+
+    public static PrisonPearlPlugin getInstance() {
+        return globalInstance;
     }
     
     public AltsList getAltsList() {
