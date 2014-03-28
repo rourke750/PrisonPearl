@@ -14,8 +14,8 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-import net.minecraft.server.v1_7_R1.Item;
-import net.minecraft.server.v1_7_R1.RegistryMaterials;
+import net.minecraft.server.v1_7_R2.Item;
+import net.minecraft.server.v1_7_R2.RegistryMaterials;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -109,9 +109,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 				altsList.queryForUpdatedAltLists(pearls.getImprisonedNames());
 			}
 		});
-
-		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))
-			new PhysicalShopListener(this, pearls);
+		
 		if (Bukkit.getPluginManager().isPluginEnabled("CombatTag"))
 			new CombatTagListener(this, pearlman);
 
