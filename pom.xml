@@ -9,22 +9,13 @@
   <version>1.9.2-SNAPSHOT</version>
   <name>PrisonPearl</name>
   <url>https://github.com/erocs/PrisonPearl</url>
+    
+  <properties>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+  </properties>
   
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
-          <configuration>
-            <source>1.7</source>
-            <target>1.7</target>
-            <compilerArgument></compilerArgument>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-        
     <sourceDirectory>${basedir}/src</sourceDirectory>
     
     <resources>
@@ -32,6 +23,7 @@
         <directory>${basedir}</directory>
         <includes>
           <include>*.yml</include>
+          <include>LICENSE.txt</include>
         </includes>
       </resource>
     </resources>
@@ -47,7 +39,7 @@
     <dependency>
       <groupId>com.untamedears</groupId>
       <artifactId>Combat-Tag</artifactId>
-      <version>[6.0.3c2-SNAPSHOT,)</version>
+      <version>[6.0,)</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
