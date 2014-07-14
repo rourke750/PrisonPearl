@@ -2,6 +2,7 @@ package com.untamedears.PrisonPearl;
 
 import java.io.IOException;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,6 +14,8 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import com.valadian.nametracker.NameAPI;
 
 class PrisonPearlCommands implements CommandExecutor {
     private final PrisonPearlPlugin plugin;
@@ -152,7 +155,7 @@ class PrisonPearlCommands implements CommandExecutor {
             
         }else if (label.equalsIgnoreCase("ppgetalts")) {
             if(sender.hasPermission("prisonpearl.getalts")) {// sees if the players has the permission.
-                return getAlts(sender, args);}
+                return getAltsByName(sender, args);}
             else{ sender.sendMessage("You Do not have Permissions prisonpearl.getalts");}// if players doesn't have permission, broadcasts message saying what they are missing.
 
         } else if (label.equalsIgnoreCase("ppsetalts")) {
@@ -171,7 +174,7 @@ class PrisonPearlCommands implements CommandExecutor {
     	String[] confirmedAlts = new String[args.length-1];
     	System.arraycopy(args, 1, confirmedAlts, 0, confirmedAlts.length);
     	try {
-			plugin.setAlts(args[0], confirmedAlts);
+			plugin.setAlts(UUID.fromString(args[0]), toUUIDList(confirmedAlts));
 			return true;
 		} catch (IOException e) {
 			sender.sendMessage("IOException accured when trying to write to excluded_alts.txt");
@@ -180,12 +183,22 @@ class PrisonPearlCommands implements CommandExecutor {
 		}
 	}
 
-	private boolean getAlts(CommandSender sender, String[] args) {
+    private UUID[] toUUIDList(String[] stringids)
+    {
+		UUID uuids[] = new UUID[stringids.length];
+		for(int i = 0; i<stringids.length; i++)
+		{
+			uuids[i] = UUID.fromString(stringids[i]);
+		}
+		return uuids;
+    }
+	private boolean getAltsByName(CommandSender sender, String[] args) {
     	if (args.length != 1)
     	{
     		return false;
     	}
-    	String[] alts = plugin.getAltsList().getAltsArray(args[0]);
+    	Player player = Bukkit.getPlayerExact(args[0]);
+    	UUID[] alts = plugin.getAltsList().getAltsArray(player.getUniqueId());
     	if (alts.length == 0)
     	{
     		sender.sendMessage("No information about " + args[0]);
@@ -267,7 +280,7 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("Invalid distance " + args[0]);
             return false;
         }
-        summonman.getSummon(pp.getImprisonedName()).setAllowedDistance(dist);
+        summonman.getSummon(pp.getImprisonedId()).setAllowedDistance(dist);
         sender.sendMessage(pp.getImprisonedName() + "'s allowed distance set to " + args[0]);
         return true;
     }
@@ -284,7 +297,7 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("Invalid damage " + args[0]);
             return false;
         }
-        summonman.getSummon(pp.getImprisonedName()).setDamageAmount(dmg);
+        summonman.getSummon(pp.getImprisonedId()).setDamageAmount(dmg);
         sender.sendMessage(pp.getImprisonedName() + "'s damage amount set to " + args[0]);
         return true;
     }
@@ -294,8 +307,8 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pp == null) {
             return false;
         }
-        boolean speak = summonman.getSummon(pp.getImprisonedName()).isCanSpeak();
-        summonman.getSummon(pp.getImprisonedName()).setCanSpeak(!speak);
+        boolean speak = summonman.getSummon(pp.getImprisonedId()).isCanSpeak();
+        summonman.getSummon(pp.getImprisonedId()).setCanSpeak(!speak);
         sender.sendMessage(pp.getImprisonedName() + " ability to speak set to " + !speak);
         return true;
     }
@@ -305,8 +318,8 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pp == null) {
             return false;
         }
-        boolean damage = summonman.getSummon(pp.getImprisonedName()).isCanDealDamage();
-        summonman.getSummon(pp.getImprisonedName()).setCanDealDamage(!damage);
+        boolean damage = summonman.getSummon(pp.getImprisonedId()).isCanDealDamage();
+        summonman.getSummon(pp.getImprisonedId()).setCanDealDamage(!damage);
         sender.sendMessage(pp.getImprisonedName() + " ability to deal damage set to " + !damage);
         return true;
     }
@@ -316,8 +329,8 @@ class PrisonPearlCommands implements CommandExecutor {
         if (pp == null) {
             return false;
         }
-        boolean block = summonman.getSummon(pp.getImprisonedName()).isCanBreakBlocks();
-        summonman.getSummon(pp.getImprisonedName()).setCanBreakBlocks(!block);
+        boolean block = summonman.getSummon(pp.getImprisonedId()).isCanBreakBlocks();
+        summonman.getSummon(pp.getImprisonedId()).setCanBreakBlocks(!block);
         sender.sendMessage(pp.getImprisonedName() + " ability to break blocks set to " + !block);
         return true;
     }
@@ -362,7 +375,8 @@ class PrisonPearlCommands implements CommandExecutor {
                 return false;
             name_is = args[0] + " is";
             name_possesive = args[0] + "'s";
-            pp = pearls.getByImprisoned(args[0]);
+            UUID uuid = NameAPI.getUUID(args[0]);
+            pp = pearls.getByImprisoned(uuid);
         }
         if (pp != null) {
             if (!pp.verifyLocation()) {
@@ -398,7 +412,8 @@ class PrisonPearlCommands implements CommandExecutor {
         } else {
             if (args.length != 1)
                 return false;
-            pp = pearls.getByImprisoned(args[0]);
+            UUID uuid = NameAPI.getUUID(args[0]);
+            pp = pearls.getByImprisoned(uuid);
             if (pp == null) {
                 sender.sendMessage(args[0] + " is not imprisoned");
                 return true;
@@ -421,11 +436,13 @@ class PrisonPearlCommands implements CommandExecutor {
             sender.sendMessage("imprison cannot be used at the console");
             return true;
         }
-        if (pearlman.imprisonPlayer(args[0], (Player)sender)) {
+        String playerName = args[0];
+        UUID uuid = NameAPI.getUUID(playerName);
+        if (pearlman.imprisonPlayer(uuid, (Player)sender)) {
             sender.sendMessage("You imprisoned " + args[0]);
-            Player player = Bukkit.getPlayerExact(args[0]);
-            if (player != null) {
-                player.setHealth(0.0);
+            Player imprisoned = Bukkit.getPlayer(uuid);
+            if (imprisoned != null) {
+            	imprisoned.setHealth(0.0);
             }
         } else {
             sender.sendMessage("You failed to imprison " + args[0]);
@@ -552,7 +569,8 @@ class PrisonPearlCommands implements CommandExecutor {
             return true;
         }
         Player player = (Player)sender;
-        Player receiver = Bukkit.getPlayerExact(args[0]);
+        UUID uuid = NameAPI.getUUID(args[0]);
+        Player receiver = Bukkit.getPlayer(uuid);
         if (receiver == null) {
             sender.sendMessage("No such player " + args[0]);
             return true;
@@ -582,7 +600,8 @@ class PrisonPearlCommands implements CommandExecutor {
         Player player = (Player)sender;
         Player broadcaster;
         if (args.length == 1) {
-            broadcaster = Bukkit.getPlayerExact(args[0]);
+            UUID uuid = NameAPI.getUUID(args[0]);
+            broadcaster = Bukkit.getPlayer(uuid);
             if (broadcaster == null) {
                 sender.sendMessage("No such player " + args[0]);
                 return true;
@@ -610,7 +629,8 @@ class PrisonPearlCommands implements CommandExecutor {
             return true;
         }
         Player player = (Player)sender;
-        Player broadcaster = Bukkit.getPlayerExact(args[0]);
+        UUID uuid = NameAPI.getUUID(args[0]);
+        Player broadcaster = Bukkit.getPlayer(uuid);
         if (broadcaster == null) {
             sender.sendMessage("No such player " + args[0]);
             return true;
@@ -644,7 +664,9 @@ class PrisonPearlCommands implements CommandExecutor {
             }
             return player.getInventory().getHeldItemSlot();
         } else {
-            PrisonPearl pp = pearls.getByImprisoned(args[pos]);
+
+            UUID uuid = NameAPI.getUUID(args[pos]);
+            PrisonPearl pp = pearls.getByImprisoned(uuid);
             if (pp != null) {
                 Inventory inv = player.getInventory();
                 for (Entry<Integer, ? extends ItemStack> entry : inv.all(Material.ENDER_PEARL).entrySet()) {
@@ -678,9 +700,10 @@ class PrisonPearlCommands implements CommandExecutor {
         if (args.length != 1)
             return false;
         if (!(sender instanceof Player)) {
-            boolean isBanned = plugin.isTempBanned(args[0]);
+            UUID uuid = NameAPI.getUUID(args[0]);
+            boolean isBanned = plugin.isTempBanned(uuid);
             if (isBanned) {
-                sender.sendMessage(args[0]+" is temp banned for having "+plugin.getImprisonedCount(args[0])+" imprisoned accounts: "+plugin.getImprisonedAltsString(args[0]));
+                sender.sendMessage(args[0]+" is temp banned for having "+plugin.getImprisonedCount(uuid)+" imprisoned accounts: "+plugin.getImprisonedAltsString(uuid));
             } else {
                 sender.sendMessage(args[0]+" is not temp banned");
             }

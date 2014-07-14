@@ -33,12 +33,12 @@ class CombatTagManager {
 		return combatTagEnabled && combatTagApi != null && combatTagApi.isInCombat(playerName);
 	}
 	
-	public String getNPCPlayerName(Entity player) {
-		if (combatTagEnabled && combatTagApi != null) {
-			if (combatTagApi.isNPC(player)) {
-				return combatTagApi.getNPCPlayerName(player);
-			}
-		}
-		return "";
-	}
+//	public String getNPCPlayerName(Entity player) {
+//		if (combatTagEnabled && combatTagApi != null) {
+//			if (combatTagApi.isNPC(player)) {
+//				return plugin.getPlayerName(player);
+//			}
+//		}
+//		return "";
+//	}
 }

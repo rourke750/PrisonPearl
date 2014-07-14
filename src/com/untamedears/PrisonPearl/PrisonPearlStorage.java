@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
@@ -30,12 +31,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.untamedears.EnderExpansion.Enderplugin;
+import com.valadian.nametracker.NameAPI;
+
+//import com.untamedears.EnderExpansion.Enderplugin;
 
 public class PrisonPearlStorage implements SaveLoad {
 	private PrisonPearlPlugin plugin;
 	private final Map<Short, PrisonPearl> pearls_byid;
-	private final Map<String, PrisonPearl> pearls_byimprisoned;
+	private final Map<UUID, PrisonPearl> pearls_byimprisoned;
 	private short nextid;
 	
 	private boolean dirty;
@@ -43,7 +46,7 @@ public class PrisonPearlStorage implements SaveLoad {
 	public PrisonPearlStorage(PrisonPearlPlugin plugin) {
 	this.plugin = plugin;
 		pearls_byid = new HashMap<Short, PrisonPearl>();
-		pearls_byimprisoned = new HashMap<String, PrisonPearl>();
+		pearls_byimprisoned = new HashMap<UUID, PrisonPearl>();
 		nextid = 1;
 	}
 	
@@ -55,9 +58,9 @@ public class PrisonPearlStorage implements SaveLoad {
 		dirty = true;
 	}
 
-    public String normalizeName(String name) {
-        return name.toLowerCase();
-    }
+//    public String normalizeName(String name) {
+//        return name.toLowerCase();
+//    }
 
 	public void load(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
@@ -69,9 +72,9 @@ public class PrisonPearlStorage implements SaveLoad {
 		while ((line = br.readLine()) != null) {
 			String parts[] = line.split(" ");
 			short id = Short.parseShort(parts[0]);
-			String imprisoned = parts[1];
+			UUID imprisoned = UUID.fromString(parts[1]);
 			Location loc = new Location(Bukkit.getWorld(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]));
-			PrisonPearl pp = PrisonPearl.makeFromLocation(id, imprisoned, loc);
+			PrisonPearl pp = PrisonPearl.makeFromLocation(id, NameAPI.getCurrentName(imprisoned), imprisoned, loc);
 			if (parts.length != 6) {
 				String motd = "";
 				for (int i = 6; i < parts.length; i++) {
@@ -105,7 +108,7 @@ public class PrisonPearlStorage implements SaveLoad {
 			Location loc = pp.getLocation();
 			br.append(String.valueOf(pp.getID()));
 			br.append(" ");
-			br.append(pp.getImprisonedName());
+			br.append(pp.getImprisonedId().toString());
 			br.append(" ");
 			br.append(loc.getWorld().getName());
 			br.append(" ");
@@ -136,11 +139,11 @@ public class PrisonPearlStorage implements SaveLoad {
 	}
 	
 	public PrisonPearl newPearl(Player imprisoned, Player imprisoner) {
-		return newPearl(imprisoned.getName(), imprisoner);
+		return newPearl(imprisoned.getName(), imprisoned.getUniqueId(), imprisoner);
 	}
 	
-	public PrisonPearl newPearl(String imprisonedname, Player imprisoner) {
-		PrisonPearl pp = new PrisonPearl(getNextId(), imprisonedname, imprisoner);
+	public PrisonPearl newPearl(String imprisonedName, UUID imprisonedId, Player imprisoner) {
+		PrisonPearl pp = new PrisonPearl(getNextId(), imprisonedName, imprisonedId, imprisoner);
 		addPearl(pp);
 		return pp;
 	}
@@ -156,12 +159,12 @@ public class PrisonPearlStorage implements SaveLoad {
 			return HolderStateToInventory_BADPARAM;
 		}
 		BlockState inherentViolence = pp.getHolderBlockState();
-		if (Bukkit.getPluginManager().isPluginEnabled("EnderExpansion")){
-			if (pp.getLocation().getBlock().getType() == Material.ENDER_CHEST){
-				inv[0] = Enderplugin.getchestInventory(pp.getLocation());
-				return HolderStateToInventory_SUCCESS;
-			}
-		}
+//		if (Bukkit.getPluginManager().isPluginEnabled("EnderExpansion")){
+//			if (pp.getLocation().getBlock().getType() == Material.ENDER_CHEST){
+//				inv[0] = Enderplugin.getchestInventory(pp.getLocation());
+//				return HolderStateToInventory_SUCCESS;
+//			}
+//		}
 		if (inherentViolence == null) {
 			return HolderStateToInventory_NULLSTATE;
 		}
@@ -230,17 +233,17 @@ public class PrisonPearlStorage implements SaveLoad {
 	public void deletePearl(PrisonPearl pp) {
 		removePearlFromContainer(pp);
 		pearls_byid.remove(pp.getID());
-		pearls_byimprisoned.remove(normalizeName(pp.getImprisonedName()));
+		pearls_byimprisoned.remove(pp.getImprisonedId());
 		dirty = true;
 	}
 	
 	public void addPearl(PrisonPearl pp) {
-		PrisonPearl old = pearls_byimprisoned.get(normalizeName(pp.getImprisonedName()));
+		PrisonPearl old = pearls_byimprisoned.get(pp.getImprisonedId());
 		if (old != null)
 			pearls_byid.remove(old.getID());
 		
 		pearls_byid.put(pp.getID(), pp);
-		pearls_byimprisoned.put(normalizeName(pp.getImprisonedName()), pp);
+		pearls_byimprisoned.put(pp.getImprisonedId(), pp);
 		dirty = true;
 	}
 	
@@ -255,53 +258,54 @@ public class PrisonPearlStorage implements SaveLoad {
 			return pearls_byid.get(item.getDurability());
 	}
 	
-	public PrisonPearl getByImprisoned(String name) {
-		return pearls_byimprisoned.get(normalizeName(name));
+	public PrisonPearl getByImprisoned(UUID id) {
+		return pearls_byimprisoned.get(id);
 	}
 	
 	public PrisonPearl getByImprisoned(Player player) {
-		return pearls_byimprisoned.get(normalizeName(player.getName()));
+		return pearls_byimprisoned.get(player.getUniqueId());
 	}
 	
 	public Integer getPearlCount(){
 		return pearls_byimprisoned.size();
 	}
 	
-	boolean isImprisoned(String name) {
-		return pearls_byimprisoned.containsKey(normalizeName(name));
+	boolean isImprisoned(UUID id) {
+		return pearls_byimprisoned.containsKey(id);
 	}
 	
 	boolean isImprisoned(Player player) {
-		return pearls_byimprisoned.containsKey(normalizeName(player.getName()));
+		return pearls_byimprisoned.containsKey(player.getUniqueId());
 	}
 	
-	public Integer getImprisonedCount(String[] names) {
+	public Integer getImprisonedCount(UUID[] ids) {
 		Integer count = 0;
-		for (String name : names) {
-			if (pearls_byimprisoned.containsKey(normalizeName(name))) {
+		for (UUID id : ids) {
+			if (pearls_byimprisoned.containsKey(id)) {
 				count++;
 			}
 		}
 		return count;
 	}
 	
-	public String[] getImprisonedNames(String[] names) {
-		List<String> iNames = new ArrayList<String>();
-		for (String name : names) {
-			if (pearls_byimprisoned.containsKey(normalizeName(name))) {
-				iNames.add(name);
+	public UUID[] getImprisonedIds(UUID[] ids) {
+		List<UUID> imdIds = new ArrayList<UUID>();
+		for (UUID id : ids) {
+			if (pearls_byimprisoned.containsKey(id)) {
+				imdIds.add(id);
 			}
 		}
-		int count = iNames.size();
-		String[] results = new String[count];
+		int count = imdIds.size();
+		UUID[] results = new UUID[count];
 		for (int i = 0; i < count; i++) {
-			results[i] = iNames.get(i);
+			results[i] = imdIds.get(i);
 		}
 		return results;
 	}
 
 	public boolean upgradePearl(Inventory inv, PrisonPearl pp) {
-		final String prisoner = pp.getImprisonedName();
+		final UUID prisonerId = pp.getImprisonedId();
+		final String prisoner = Bukkit.getPlayer(prisonerId).getName();
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
 		int pearlslot = inv.first(is);
 		if (pearlslot < 0) {
@@ -349,12 +353,15 @@ public class PrisonPearlStorage implements SaveLoad {
 		int coalfed = 0;
 		int freedpearls = 0;
 		for (PrisonPearl pp : map.values()) {
+
+			final UUID prisonerId = pp.getImprisonedId();
+			//final String prisoner = Bukkit.getPlayer(prisonerId).getName();
 			Inventory inv[] = new Inventory[2];
 			int retval = HolderStateToInventory(pp, inv);
 			if (retval == HolderStateToInventory_BADCONTAINER) {
 				pearlman.freePearl(pp);
-				plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Freed during coal feed, container was corrupt.");
-				log+="\n freed:"+pp.getImprisonedName()+",reason:"+"badcontainer";
+				plugin.getLogger().info(prisonerId + " is being freed. Reason: Freed during coal feed, container was corrupt.");
+				log+="\n freed:"+prisonerId+",reason:"+"badcontainer";
 				freedpearls++;
 				continue;
 			} else if (retval != HolderStateToInventory_SUCCESS) {
@@ -369,11 +376,11 @@ public class PrisonPearlStorage implements SaveLoad {
 				inactive_time += inactive_millis;
 				if (inactive_time <= System.currentTimeMillis()) {
 					// if player has not logged on in the set amount of time than ignore feeding
-					log += "\nnot fed inactive: " + pp.getImprisonedName();
+					log += "\nnot fed inactive: " + prisonerId;
 					continue;
 				}
 			}
-			message = message + "Pearl #" + pp.getID() + ",Name: " + pp.getImprisonedName() + " in a " + pp.getHolderBlockState().getType();
+			message = message + "Pearl #" + pp.getID() + ",Id: " + prisonerId + " in a " + pp.getHolderBlockState().getType();
 			ItemStack requirement = plugin.getPPConfig().getUpkeepResource();
 			int requirementSize = requirement.getAmount();
 
@@ -384,18 +391,18 @@ public class PrisonPearlStorage implements SaveLoad {
 				inv[0].removeItem(requirement);
 				pearlsfed++;
 				coalfed += requirementSize;
-				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
+				log+="\n fed:" + prisonerId + ",location:"+ pp.describeLocation();
 			} else if(inv[1] != null && inv[1].containsAtLeast(requirement,requirementSize)){
 				message = message + "\n Chest contains enough purestrain coal.";
 				inv[1].removeItem(requirement);
 				pearlsfed++;
 				coalfed += requirementSize;
-				log+="\n fed:" + pp.getImprisonedName() + ",location:"+ pp.describeLocation();
+				log+="\n fed:" + prisonerId + ",location:"+ pp.describeLocation();
 			} else {
 				message = message + "\n Chest does not contain enough purestrain coal.";
-				plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Freed during coal feed, container did not have enough coal.");
+				plugin.getLogger().info(prisonerId + " is being freed. Reason: Freed during coal feed, container did not have enough coal.");
 				pearlman.freePearl(pp);
-				log+="\n freed:"+pp.getImprisonedName()+",reason:"+"nocoal"+",location:"+pp.describeLocation();
+				log+="\n freed:"+prisonerId+",reason:"+"nocoal"+",location:"+pp.describeLocation();
 				freedpearls++;
 			}
 		}

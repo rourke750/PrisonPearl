@@ -1,6 +1,7 @@
 package com.untamedears.PrisonPearl;
 
 import java.util.LinkedList;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -43,29 +44,32 @@ public class PrisonPearl {
     private LinkedList<Holder> holders = new LinkedList<Holder>();
 
 	private final short id;
-	private final String imprisonedname;
+	private final String imprisonedName;
+	private final UUID imprisonedId;
 	private String motd = "";
 	private boolean pearlOnCursor = false;
 	private long lastMoved = 0;
 	
-	public PrisonPearl(short id, String imprisonedname, Player holderplayer) {
+	public PrisonPearl(short id, String imprisonedName, UUID imprisonedId, Player holderplayer) {
 		this.id = id;
-		this.imprisonedname = imprisonedname;
+		this.imprisonedName = imprisonedName;
+		this.imprisonedId = imprisonedId;
 		this.holders.addFirst(new Holder(holderplayer));
 	}
 	
-    public PrisonPearl(short id, String imprisonedname, Location blocklocation) {
+    public PrisonPearl(short id, String imprisonedName, UUID imprisonedId, Location blocklocation) {
 		this.id = id;
-		this.imprisonedname = imprisonedname;
+		this.imprisonedName = imprisonedName;
+		this.imprisonedId = imprisonedId;
 		this.holders.addFirst(new Holder(blocklocation));
 	}
 
-	public static PrisonPearl makeFromLocation(short id, String imprisonedname, Location loc) {
-		if (imprisonedname == null || loc == null)
+	public static PrisonPearl makeFromLocation(short id, String imprisonedName, UUID imprisonedId, Location loc) {
+		if (imprisonedId == null || loc == null)
 			return null;
 		BlockState bs = loc.getBlock().getState();
 		if (bs instanceof InventoryHolder)
-			return new PrisonPearl(id, imprisonedname, loc);
+			return new PrisonPearl(id, imprisonedName, imprisonedId, loc);
 		else
 			return null;
 	}
@@ -75,15 +79,20 @@ public class PrisonPearl {
 	}
 
 	public String getImprisonedName() {
-		return imprisonedname;
+		return imprisonedName;
 	}
-
+	public UUID getImprisonedId() {
+		return imprisonedId;
+	}
+	private String getPlayerName() {
+		return Bukkit.getPlayer(imprisonedId).getName();
+	}
 	public Player getImprisonedPlayer() {
-		return Bukkit.getPlayerExact(imprisonedname);
+		return Bukkit.getPlayer(imprisonedId);
 	}
 
 	public OfflinePlayer getImprisonedOfflinePlayer() {
-		return Bukkit.getOfflinePlayer(imprisonedname);
+		return Bukkit.getOfflinePlayer(imprisonedId);
 	}
 
     public Player getHolderPlayer() {
@@ -249,7 +258,7 @@ public class PrisonPearl {
     public boolean verifyLocation() {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("PP (%d, %s) failed verification: ",
-            id, imprisonedname));
+            id, getPlayerName()));
         for (final Holder holder : this.holders) {
             if (verifyHolder(holder, sb)) {
                 return true;

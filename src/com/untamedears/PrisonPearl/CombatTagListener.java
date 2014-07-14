@@ -1,5 +1,7 @@
 package com.untamedears.PrisonPearl;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
@@ -23,10 +25,10 @@ class CombatTagListener implements Listener {
         if (event.getReason() != NpcDespawnReason.DESPAWN_TIMEOUT) {
             return;
         }
-        String plrname = event.getPlayerName();
+        UUID plruuid = event.getPlayerUUID();
         NPC npc = event.getNpc();
         Location loc = npc.getBukkitEntity().getLocation();
 
-        pearlman_.handleNpcDespawn(plrname, loc);
+        pearlman_.handleNpcDespawn(plruuid, loc);
     }
 }

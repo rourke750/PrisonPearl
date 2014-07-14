@@ -4,14 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
-import net.minecraft.server.v1_7_R1.EntityPlayer;
-import net.minecraft.server.v1_7_R1.MinecraftServer;
-import net.minecraft.server.v1_7_R1.PlayerInteractManager;
+import net.minecraft.server.v1_7_R3.EntityPlayer;
+import net.minecraft.server.v1_7_R3.MinecraftServer;
+import net.minecraft.server.v1_7_R3.PlayerInteractManager;
+
+import org.bukkit.craftbukkit.v1_7_R3.CraftServer;
+
 import net.minecraft.util.com.mojang.authlib.GameProfile;
 
-import org.bukkit.craftbukkit.v1_7_R1.CraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -64,7 +67,7 @@ class PrisonPearlManager implements Listener {
 	}
 
 	public boolean imprisonPlayer(Player imprisoned, Player imprisoner) {
-		return imprisonPlayer(imprisoned.getName(), imprisoner);
+		return imprisonPlayer(imprisoned.getUniqueId(), imprisoner);
 	}
 
 	/**
@@ -77,7 +80,7 @@ class PrisonPearlManager implements Listener {
 	 * @param imprisoner
 	 * @return
 	 */
-	public boolean imprisonPlayer(String imprisonedname, Player imprisoner) {
+	public boolean imprisonPlayer(UUID imprisonedId, Player imprisoner) {
 		World respawnworld = Bukkit.getWorld(getConfig().getString("free_world"));
 
 		// set up the imprisoner's inventory
@@ -140,7 +143,8 @@ class PrisonPearlManager implements Listener {
 		}
 
 		// create the prison pearl
-		PrisonPearl pp = pearls.newPearl(imprisonedname, imprisoner);
+		PrisonPearl pp = pearls.newPearl(Bukkit.getPlayer(imprisonedId), imprisoner);
+		String name = Bukkit.getPlayer(pp.getImprisonedId()).getName();
 		// set off an event
 		if (!prisonPearlEvent(pp, PrisonPearlEvent.Type.NEW, imprisoner)) {
 			pearls.deletePearl(pp);
@@ -152,10 +156,11 @@ class PrisonPearlManager implements Listener {
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
 		ItemMeta im = is.getItemMeta();
 		// Rename pearl to that of imprisoned player
-		im.setDisplayName(pp.getImprisonedName());
+		im.setDisplayName(name);
 		List<String> lore = new ArrayList<String>();
 		// Gives pearl lore that says more info when hovered over
-		lore.add(pp.getImprisonedName() + " is held within this pearl");
+		lore.add(name + " is held within this pearl");
+		lore.add("UUID: "+pp.getImprisonedId());
 		// Given enchantment effect (durability used because it doesn't affect pearl behaviour)
 		im.addEnchant(Enchantment.DURABILITY, 1, true);
 		im.setLore(lore);
@@ -166,7 +171,7 @@ class PrisonPearlManager implements Listener {
 		// Reason for edit: Gives pearl enchantment effect (distinguishable, unstackable) Gives name of prisoner in inventory.
 
 		if (getConfig().getBoolean("prison_resetbed")) {
-			Player imprisoned = Bukkit.getPlayerExact(imprisonedname);
+			Player imprisoned = Bukkit.getPlayer(imprisonedId);
 			// clear out the players bed
 			if (imprisoned != null) {
 				imprisoned.setBedSpawnLocation(respawnworld.getSpawnLocation());
@@ -240,17 +245,17 @@ class PrisonPearlManager implements Listener {
 		event.setCancelled(true);
 
 		freePearl(pp);
-		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: " + player.getDisplayName() + " threw the pearl.");
-		player.sendMessage("You've freed " + pp.getImprisonedName());
+		plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: " + player.getDisplayName() + " threw the pearl.");
+		player.sendMessage("You've freed " + player.getName());
 	}
 
 	// Called from CombatTagListener.onNpcDespawn
-	public void handleNpcDespawn(String plrname, Location loc) {
+	public void handleNpcDespawn(UUID plruuid, Location loc) {
 		World world = loc.getWorld();
-		Player player = plugin.getServer().getPlayer(plrname);
+		Player player = plugin.getServer().getPlayer(plruuid);
 		if (player == null) { // If player is offline
 			MinecraftServer server = ((CraftServer)plugin.getServer()).getServer();
-			GameProfile prof = new GameProfile(null, plrname);
+			GameProfile prof = new GameProfile(plruuid, null);
 			EntityPlayer entity = new EntityPlayer(
 				server, server.getWorldServer(0), prof,
 				new PlayerInteractManager(server.getWorldServer(0)));
@@ -315,7 +320,8 @@ class PrisonPearlManager implements Listener {
 		if (pp == null)
 			return;
 
-		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: PrisonPearl item despawned.");
+		Player player = Bukkit.getPlayer(pp.getImprisonedId());
+		plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl item despawned.");
 		freePearl(pp);
 	}
 
@@ -332,13 +338,14 @@ class PrisonPearlManager implements Listener {
 				continue;
 			}
 
+			final Player player = Bukkit.getPlayer(pp.getImprisonedId());
 			final Entity entity = e;
 			// doing this in onChunkUnload causes weird things to happen
 			Bukkit.getScheduler().callSyncMethod(plugin, new Callable<Void>() {
 						public Void call() throws Exception {
 							if (freePearl(pp))
 							{
-								plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: Chunk with PrisonPearl unloaded.");
+								plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: Chunk with PrisonPearl unloaded.");
 								entity.remove();
 							}
 							return null;
@@ -360,7 +367,8 @@ class PrisonPearlManager implements Listener {
 		if (pp == null)
 			return;
 
-		plugin.getLogger().info(pp.getImprisonedName() + " is being freed. Reason: PrisonPearl combusted(lava/fire).");
+		Player player = Bukkit.getPlayer(pp.getImprisonedId());
+		plugin.getLogger().info(player.getName() + "("+pp.getImprisonedId() + ") is being freed. Reason: PrisonPearl combusted(lava/fire).");
 		freePearl(pp);
 	}
 	
