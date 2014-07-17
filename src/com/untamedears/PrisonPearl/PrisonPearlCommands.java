@@ -711,6 +711,33 @@ class PrisonPearlCommands implements CommandExecutor {
         }
         return false;
     }
+    
+    private boolean listBans(CommandSender sender, String[] args) {
+        String search = null;
+        if (args.length >= 1) {
+            search = args[0].toLowerCase();
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Bans: ");
+        boolean first = true;
+        for (UUID playerUUID : plugin.getBanManager().listBannedUUIDS()) {
+        	UUID uuid = Bukkit.getPlayer(search).getUniqueId();
+            if (search == null || playerUUID.toString().contains(uuid.toString())) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(NameAPI.getCurrentName(playerUUID));
+            }
+        }
+        if (first) {
+            sender.sendMessage("No matching bans.");
+        } else {
+            sender.sendMessage(sb.toString());
+        }
+        return true;
+    }
 
     private boolean kill() {
         return false;

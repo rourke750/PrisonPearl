@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import com.topcat.npclib.entity.NPC;
 import com.trc202.CombatTagEvents.NpcDespawnEvent;
 import com.trc202.CombatTagEvents.NpcDespawnReason;
+import com.valadian.nametracker.NameAPI;
 
 class CombatTagListener implements Listener {
     final PrisonPearlManager pearlman_;
@@ -25,7 +26,7 @@ class CombatTagListener implements Listener {
         if (event.getReason() != NpcDespawnReason.DESPAWN_TIMEOUT) {
             return;
         }
-        UUID plruuid = event.getPlayerUUID();
+        UUID plruuid = NameAPI.getUUID(event.getPlayerName());
         NPC npc = event.getNpc();
         Location loc = npc.getBukkitEntity().getLocation();
 
