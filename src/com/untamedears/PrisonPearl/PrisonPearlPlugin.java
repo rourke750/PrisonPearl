@@ -188,7 +188,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		File file = new File(getDataFolder(), "alts.txt");
 		File newFile = null;
 		
-		if (!file.exists()){ // update alts.txt to new file format
+		if (file.exists()){ // update alts.txt to new file format
 			log.log(Level.INFO, "Updating to new uuid format for alts.txt");
 			newFile = new File(getDataFolder(), "altsUUID.txt");
 			FileInputStream fis;
@@ -226,7 +226,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		
 		file = new File(getDataFolder(), "portaledplayers.txt");
-		if (!file.exists()){
+		if (file.exists()){
 			log.log(Level.INFO, "Updating to new uuid format for portaledplayers.txt");
 			newFile = new File(getDataFolder(), "portaledplayersUUID.txt");
 			FileInputStream fis;
@@ -247,7 +247,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		
 		file = new File(getDataFolder(), "prisonpearls.txt");
-		if (!file.exists()){
+		if (file.exists()){
 			log.log(Level.INFO, "Updating to new uuid format for prisonpearls.txt");
 			newFile = new File(getDataFolder(), "prisonpearlsUUID.txt");
 			
@@ -277,7 +277,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		
 		file = new File(getDataFolder(), "summons.txt");
-		if (!file.exists()){
+		if (file.exists()){
 			log.log(Level.INFO, "Updating to new uuid format for summons.txt");
 			newFile = new File(getDataFolder(), "summonsUUID.txt");
 			
@@ -307,7 +307,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		
 		file = new File(getDataFolder(), "ban_journal.dat");
-		if (!file.exists()){
+		if (file.exists()){
 			log.log(Level.INFO, "Updating to new uuid format for ban_journal.dat");
 			newFile = new File(getDataFolder(), "ban_journalUUID.dat");
 			

@@ -305,7 +305,7 @@ public class PrisonPearlStorage implements SaveLoad {
 
 	public boolean upgradePearl(Inventory inv, PrisonPearl pp) {
 		final UUID prisonerId = pp.getImprisonedId();
-		final String prisoner = Bukkit.getPlayer(prisonerId).getName();
+		final String prisoner = Bukkit.getOfflinePlayer(prisonerId).getName();
 		ItemStack is = new ItemStack(Material.ENDER_PEARL, 1, pp.getID());
 		int pearlslot = inv.first(is);
 		if (pearlslot < 0) {
