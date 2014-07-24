@@ -563,8 +563,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		
 		PrisonPearl pp = event.getPrisonPearl();
 		Player player = pp.getImprisonedPlayer();
-		String playerName = player.getName();
 		UUID playerId = pp.getImprisonedId();
+		String playerName = Bukkit.getOfflinePlayer(playerId).getName();
 		
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
 			updateAttachment(player);
