@@ -237,8 +237,12 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
 			
 			String line;
-			while ((line = br.readLine()) != null)
+			while ((line = br.readLine()) != null){
+				UUID uuid = NameAPI.getUUID(line);
+				if (uuid == null)
+					uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
 				brr.append(line + "\n");
+			}
 	
 			brr.flush();
 			brr.close();
@@ -258,7 +262,8 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			FileOutputStream fos = new FileOutputStream(newFile);
 			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
 			
-			String line;
+			String line = br.readLine();
+			brr.append(line + "\n");
 			while ((line = br.readLine()) != null){
 				String[] parts = line.split(" ");
 				String name = parts[0];

@@ -1,8 +1,7 @@
 name: PrisonPearl
 main: com.untamedears.PrisonPearl.PrisonPearlPlugin
-version: 2.0.2
-soft-depend: [NameLayer, CombatTag]
-
+version: 2.0.5
+softdepend: [NameLayer, CombatTag]
 commands:
    pplocate:
       description: Locates your prison pearl
