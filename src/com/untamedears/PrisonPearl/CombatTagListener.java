@@ -10,7 +10,6 @@ import org.bukkit.event.Listener;
 import com.topcat.npclib.entity.NPC;
 import com.trc202.CombatTagEvents.NpcDespawnEvent;
 import com.trc202.CombatTagEvents.NpcDespawnReason;
-import com.valadian.nametracker.NameAPI;
 
 class CombatTagListener implements Listener {
     final PrisonPearlManager pearlman_;

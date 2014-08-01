@@ -76,11 +76,14 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	
 	private CombatTagManager combatTagManager;
 	
+	private boolean isNameLayer;
+	
 	private Map<String, PermissionAttachment> attachments;
 	
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
+		isNameLayer = Bukkit.getPluginManager().getPlugin("NameLayer").isEnabled();
 		globalInstance = this;
 		File dat = getDataFolder();
 		data=dat;
@@ -114,7 +117,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 		
 		load(pearls, getPrisonPearlsFile());
-		
 		damageman = new DamageLogManager(this);
 		ee= new EnderExpansion(pearls);
 		pearlman = new PrisonPearlManager(this, pearls, ee);
@@ -201,7 +203,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 					List<String> parts = Arrays.asList(line.split(" "));
 					List<UUID> accounts = new ArrayList<UUID>();
 					for (String part : parts) {
-						UUID uuid = NameAPI.getUUID(part);
+						UUID uuid = null;
+			            if (isNameLayer)
+			            	uuid = NameAPI.getUUID(part);
+			            else
+			            	uuid = Bukkit.getOfflinePlayer(part).getUniqueId();
 						if (uuid == null){
 							uuid = Bukkit.getOfflinePlayer(part).getUniqueId();
 						}
@@ -238,7 +244,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			
 			String line;
 			while ((line = br.readLine()) != null){
-				UUID uuid = NameAPI.getUUID(line);
+				UUID uuid = null;
+	            if (isNameLayer)
+	            	uuid = NameAPI.getUUID(line);
+	            else
+	            	uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
 				if (uuid == null)
 					uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
 				brr.append(line + "\n");
@@ -267,7 +277,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			while ((line = br.readLine()) != null){
 				String[] parts = line.split(" ");
 				String name = parts[0];
-				UUID uuid = NameAPI.getUUID(name);
+				UUID uuid = null;
+	            if (isNameLayer)
+	            	uuid = NameAPI.getUUID(name);
+	            else
+	            	uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 				if (uuid == null)
 					uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 				brr.append(uuid.toString() + " ");
@@ -327,7 +341,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			while ((line = br.readLine()) != null){
 				String[] parts = line.split("|");
 				String name = parts[0];
-				UUID uuid = NameAPI.getUUID(name);
+				UUID uuid = null;
+	            if (isNameLayer)
+	            	uuid = NameAPI.getUUID(name);
+	            else
+	            	uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
 				if (uuid == null)
 					Bukkit.getOfflinePlayer(name).getUniqueId();
 				brr.append(uuid+"|"+parts[1]+"\n");
