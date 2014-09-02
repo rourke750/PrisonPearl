@@ -1,17 +1,31 @@
 package com.untamedears.PrisonPearl;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.lang.Thread;
+
+import net.minecraft.server.v1_7_R4.Item;
+import net.minecraft.server.v1_7_R4.RegistryMaterials;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -26,36 +40,53 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.valadian.nametracker.NameAPI;
+
 public class PrisonPearlPlugin extends JavaPlugin implements Listener {
+	private static PrisonPearlPlugin globalInstance = null;
+	
 	private PPConfig ppconfig;
 
 	private PrisonPearlStorage pearls;
+	private EnderExpansion ee;
 	private DamageLogManager damageman;
-	private PrisonPearlManager pearlman;
+	public static PrisonPearlManager pearlman;
 	private SummonManager summonman;
 	private PrisonPortaledPlayerManager portalman;
 	private BroadcastManager broadcastman;
 	private AltsList altsList;
+	private BanManager banManager_;
+	private static File data;
 	private static Logger log;
 	private static final Integer maxImprisonedAlts = 2;
 	//private static long loginDelay = 10*60*1000;
 	private static final String kickMessage = "You have too many imprisoned alts! If you think this is an error, please message the mods on /r/civcraft";
 	//private static String delayMessage = "You cannot switch alt accounts that quickly, please wait ";
-	private HashMap<String, Long> lastLoggout;
-	private HashMap<String, Boolean> banned;
+	private HashMap<UUID, Long> lastLoggout;
 	
 	private CombatTagManager combatTagManager;
+	
+	private boolean isNameLayer;
 	
 	private Map<String, PermissionAttachment> attachments;
 	
 	private final boolean startupFeed = true; //ADDED SO ONE CAN DISABLE STARTUP FEED
 	
 	public void onEnable() {
+		isNameLayer = Bukkit.getPluginManager().getPlugin("NameLayer").isEnabled();
+		globalInstance = this;
+		File dat = getDataFolder();
+		data=dat;
 	try {
     	    Metrics metrics = new Metrics(this);// Metrics support
     	    metrics.start();
@@ -69,28 +100,40 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		
 		log = this.getLogger();
 		
+		banManager_ = new BanManager(this);
+		banManager_.setBanMessage(kickMessage);
+		banManager_.initialize();
+		
 		//lastLoggout = new HashMap<String, Long>();
 		//wasKicked = new HashMap<String, Boolean>();
-		banned = new HashMap<String, Boolean>();
 		
 		pearls = new PrisonPearlStorage(this);
-		load(pearls, getPrisonPearlsFile());
+		 // updates files to uuid
+		try {
+			updateToUUID();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
+		load(pearls, getPrisonPearlsFile());
 		damageman = new DamageLogManager(this);
-		pearlman = new PrisonPearlManager(this, pearls);
+		ee= new EnderExpansion(pearls);
+		pearlman = new PrisonPearlManager(this, pearls, ee);
 		summonman = new SummonManager(this, pearls);
 		load(summonman, getSummonFile());
 		portalman = new PrisonPortaledPlayerManager(this, pearls);
 		load(portalman, getPortaledPlayersFile());
 		broadcastman = new BroadcastManager();
 		combatTagManager = new CombatTagManager(this.getServer(), log);
-
 		loadAlts();
 		checkBanAllAlts();
 	
 		
-		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))
-			new PhysicalShopListener(this, pearls);
+//		if (Bukkit.getPluginManager().isPluginEnabled("PhysicalShop"))
+//			new PhysicalShopListener(this, pearls);
+		if (Bukkit.getPluginManager().isPluginEnabled("CombatTag"))
+			new CombatTagListener(this, pearlman);
 		
 		Bukkit.getPluginManager().registerEvents(this, this);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -100,6 +143,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}, 0, getConfig().getLong("save_ticks"));
 		
 		PrisonPearlCommands commands = new PrisonPearlCommands(this, damageman, pearls, pearlman, summonman, broadcastman);
+		
 		for (String command : getDescription().getCommands().keySet()) {
 			if (command.equals("ppkill") && !getConfig().getBoolean("ppkill_enabled"))
 				continue;
@@ -110,10 +154,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		// shamelessly swiped from bookworm, not sure why there isn't a Bukkit API for this
 		// this causes items to be stacked by their durability value
 		try {
-			Method method = net.minecraft.server.v1_4_R1.Item.class.getDeclaredMethod("a", boolean.class);
-			if (method.getReturnType() == net.minecraft.server.v1_4_R1.Item.class) {
+			Method method = Item.class.getDeclaredMethod("a", boolean.class);
+			if (method.getReturnType() == Item.class) {
 				method.setAccessible(true);
-				method.invoke(net.minecraft.server.v1_4_R1.Item.ENDER_PEARL, true);
+				method.invoke(Item.REGISTRY.get("ender_pearl"), true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -136,10 +180,181 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 
 	public void onDisable() {
 		saveAll(true);
-		unBanAll();
 		
 		for (PermissionAttachment attachment : attachments.values())
 			attachment.remove();
+		globalInstance = null;
+	}
+	
+	public void updateToUUID() throws IOException{
+		File file = new File(getDataFolder(), "alts.txt");
+		File newFile = null;
+		
+		if (file.exists()){ // update alts.txt to new file format
+			log.log(Level.INFO, "Updating to new uuid format for alts.txt");
+			newFile = new File(getDataFolder(), "altsUUID.txt");
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			String line;
+			Map<UUID, List<UUID>> uuids = new HashMap<UUID, List<UUID>>();
+			while ((line = br.readLine()) != null) {
+				if (line.length() > 1) {
+					List<String> parts = Arrays.asList(line.split(" "));
+					List<UUID> accounts = new ArrayList<UUID>();
+					for (String part : parts) {
+						UUID uuid = null;
+			            if (isNameLayer)
+			            	uuid = NameAPI.getUUID(part);
+			            else
+			            	uuid = Bukkit.getOfflinePlayer(part).getUniqueId();
+						if (uuid == null){
+							uuid = Bukkit.getOfflinePlayer(part).getUniqueId();
+						}
+						accounts.add(uuid);
+					}
+					for (UUID uuid: accounts)
+						uuids.put(uuid, accounts);
+				}
+			}
+			br.close();
+			
+			FileOutputStream fos = new FileOutputStream(newFile);
+			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
+			for (UUID uuid: uuids.keySet()){
+				for (UUID alt: uuids.get(uuid))
+					brr.append(alt.toString() + " ");
+				brr.append("\n");
+			}
+			brr.flush();
+			brr.close();
+			file.delete();
+		}
+		
+		file = new File(getDataFolder(), "portaledplayers.txt");
+		if (file.exists()){
+			log.log(Level.INFO, "Updating to new uuid format for portaledplayers.txt");
+			newFile = new File(getDataFolder(), "portaledplayersUUID.txt");
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			
+			FileOutputStream fos = new FileOutputStream(newFile);
+			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			String line;
+			while ((line = br.readLine()) != null){
+				UUID uuid = null;
+	            if (isNameLayer)
+	            	uuid = NameAPI.getUUID(line);
+	            else
+	            	uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
+				if (uuid == null)
+					uuid = Bukkit.getOfflinePlayer(line).getUniqueId();
+				brr.append(line + "\n");
+			}
+	
+			brr.flush();
+			brr.close();
+			br.close();
+			file.delete();
+		}
+		
+		file = new File(getDataFolder(), "prisonpearls.txt");
+		if (file.exists()){
+			log.log(Level.INFO, "Updating to new uuid format for prisonpearls.txt");
+			newFile = new File(getDataFolder(), "prisonpearlsUUID.txt");
+			
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			
+			FileOutputStream fos = new FileOutputStream(newFile);
+			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			String line = br.readLine();
+			brr.append(line + "\n");
+			while ((line = br.readLine()) != null){
+				String[] parts = line.split(" ");
+				String name = parts[0];
+				UUID uuid = null;
+	            if (isNameLayer)
+	            	uuid = NameAPI.getUUID(name);
+	            else
+	            	uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
+				if (uuid == null)
+					uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
+				brr.append(uuid.toString() + " ");
+				for (int x = 1; x < parts.length; x++)
+					brr.append(parts[x] + " ");
+				brr.append("\n");
+			}
+			brr.flush();
+			brr.close();
+			br.close();
+			file.delete();
+		}
+		
+		file = new File(getDataFolder(), "summons.txt");
+		if (file.exists()){
+			log.log(Level.INFO, "Updating to new uuid format for summons.txt");
+			newFile = new File(getDataFolder(), "summonsUUID.txt");
+			
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			
+			FileOutputStream fos = new FileOutputStream(newFile);
+			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			String line;
+			while ((line = br.readLine()) != null){
+				String[] parts = line.split(" ");
+				String name = parts[0];
+				UUID uuid = NameAPI.getUUID(name);
+				if (uuid == null)
+					uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
+				brr.append(uuid.toString() + " ");
+				for (int x = 1; x < parts.length; x++)
+					brr.append(parts[x] + " ");
+				brr.append("\n");
+			}
+			brr.flush();
+			brr.close();
+			br.close();
+			file.delete();
+		}
+		
+		file = new File(getDataFolder(), "ban_journal.dat");
+		if (file.exists()){
+			log.log(Level.INFO, "Updating to new uuid format for ban_journal.dat");
+			newFile = new File(getDataFolder(), "ban_journalUUID.dat");
+			
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			
+			FileOutputStream fos = new FileOutputStream(newFile);
+			BufferedWriter brr = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			String line;
+			while ((line = br.readLine()) != null){
+				String[] parts = line.split("|");
+				String name = parts[0];
+				UUID uuid = null;
+	            if (isNameLayer)
+	            	uuid = NameAPI.getUUID(name);
+	            else
+	            	uuid = Bukkit.getOfflinePlayer(name).getUniqueId();
+				if (uuid == null)
+					Bukkit.getOfflinePlayer(name).getUniqueId();
+				brr.append(uuid+"|"+parts[1]+"\n");
+			}
+			brr.flush();
+			brr.close();
+			br.close();
+			file.delete();
+		}
 	}
 	
 	public void saveAll(boolean force) {
@@ -188,21 +403,39 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 	}
 
-	private File getPrisonPearlsFile() {
-		return new File(getDataFolder(), "prisonpearls.txt");
+	private static File getPrisonPearlsFile() {
+		return new File(data, "prisonpearlsUUID.txt");
 	}
 	
 	private File getSummonFile() {
-		return new File(getDataFolder(), "summons.txt");
+		return new File(getDataFolder(), "summonsUUID.txt");
 	}
 	
 	private File getPortaledPlayersFile() {
-		return new File(getDataFolder(), "portaledplayers.txt");
+		return new File(getDataFolder(), "portaledplayersUUID.txt");
 	}
 	
 	
 	private File getAltsListFile() {
-		return new File(getDataFolder(), "alts.txt");
+		return getFile("altsUUID.txt");
+	}
+	private File getUUIDListFile() {
+		return getFile("uuids.txt");
+	}
+	private File getFile(String name){
+		File file = new File(getDataFolder(), name);
+		if (!file.exists()) {
+			try {
+				FileOutputStream fos = new FileOutputStream(file);
+				BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
+				br.write("\n");
+				br.flush();
+				fos.close();
+			} catch(IOException ex) {
+			}
+		}
+		return file;
+		
 	}
 	
 	
@@ -212,7 +445,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		final Player player = event.getPlayer();
 		updateAttachment(player);
-		checkBan(player.getName());
+		checkBan(player.getUniqueId());
 		
 		if (player.isDead())
 			return;
@@ -220,9 +453,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Location loc = player.getLocation();
 		Location newloc = getRespawnLocation(player, loc);
 		if (newloc != null) {
-			if (loc.getWorld() == getPrisonWorld() && (newloc.getWorld() != loc.getWorld() || newloc == RESPAWN_PLAYER))
+			if (loc.getWorld() == getPrisonWorld() && (newloc.getWorld() != loc.getWorld() || newloc == RESPAWN_PLAYER)) {
 				player.sendMessage("While away, you were freed!"); // he was freed offline
-			delayedTp(player, newloc);
+			}
+			delayedTp(player, newloc, ppconfig.getPpsummonClearInventory());
 		} else {
 			prisonMotd(player); 
 		}
@@ -234,9 +468,10 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		Player player = event.getPlayer();
 		
 		if (pearls.isImprisoned(player) && !summonman.isSummoned(player)) { // if in prison but not imprisoned
-			if (event.getTo().getWorld() != getPrisonWorld()) {
+            Location toLoc = event.getTo();
+			if (toLoc != null && toLoc.getWorld() != getPrisonWorld()) {
 				prisonMotd(player);
-				delayedTp(player, getPrisonSpawnLocation());
+				delayedTp(player, getPrisonSpawnLocation(), false);
 			}
 		}
 	}
@@ -257,7 +492,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (newloc != null && newloc != RESPAWN_PLAYER)
 			event.setRespawnLocation(newloc);
 	}
-	
+
 	// called when a player joins or spawns
 	private void prisonMotd(Player player) {
 		if (pearls.isImprisoned(player) && !summonman.isSummoned(player)) { // if player is imprisoned
@@ -273,17 +508,20 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	// returns null if the curloc is an acceptable respawn location
 	private Location getRespawnLocation(Player player, Location curloc) {	
 		if (pearls.isImprisoned(player)) { // if player is imprisoned
-			if (summonman.isSummoned(player)) // if summoned
+			if (summonman.isSummoned(player)) { // if summoned
 				return null; // don't modify location
-			if (curloc.getWorld() != getPrisonWorld()) // but not in prison world
+            } else if (curloc.getWorld() != getPrisonWorld()) { // but not in prison world
 				return getPrisonSpawnLocation(); // should bre respawned in prison
+            }
 		} else if (curloc.getWorld() == getPrisonWorld() && !portalman.isPlayerPortaledToPrison(player)) { // not imprisoned, but spawning in prison?
-			if (player.getBedSpawnLocation() != null) // if he's got a bed
+			// This indicates that the player was freed while logged out.
+			if (player.getBedSpawnLocation() != null) { // if he's got a bed
 				return player.getBedSpawnLocation(); // spawn him there
-			else if (getConfig().getBoolean("free_respawn")) // if we should respawn instead of tp to spawn
+            } else if (getConfig().getBoolean("free_respawn")) { // if we should respawn instead of tp to spawn
 				return RESPAWN_PLAYER; // kill the player
-			else
+            } else {
 				return getFreeWorld().getSpawnLocation(); // otherwise, respawn him at the spawn of the free world
+            }
 		}
 		
 		return null; // don't modify respawn location
@@ -299,20 +537,20 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		String playerName = player.getName();
 		
 		if (combatTagManager.isCombatTagNPC(event.getEntity()))  {
-			String npcName = player.getName();
-			String realName = combatTagManager.getNPCPlayerName(player);
-			log.info("NPC: "+npcName+", Player: "+playerName);
-			if (!realName.equals("")) {
-				playerName = realName;
-			}
+			playerName = player.getName();
+			//String realName = combatTagManager.getNPCPlayerName(player);
+			log.info("NPC Player: "+playerName+", ID: "+ player.getUniqueId());
+//			if (!realName.equals("")) {
+//				playerName = realName;
+//			}
 		}
 		
-		PrisonPearl pp = pearls.getByImprisoned(playerName); // find out if the player is imprisoned
+		PrisonPearl pp = pearls.getByImprisoned(player.getUniqueId()); // find out if the player is imprisoned
 		if (pp != null) { // if imprisoned
 			if (!getConfig().getBoolean("prison_stealing") || player.getLocation().getWorld() == getPrisonWorld()) {// bail if prisoner stealing isn't allowed, or if the player is in prison (can't steal prisoners from prison ever)
 				// reveal location of pearl to damaging players if pearl stealing is disabled
 				for (Player damager : damageman.getDamagers(player)) {
-					damager.sendMessage(ChatColor.GREEN+"[PrisonPearl] "+pp.getImprisonedName()+" cannot be pearled here because they are already "+pp.describeLocation());
+					damager.sendMessage(ChatColor.GREEN+"[PrisonPearl] "+playerName+" cannot be pearled here because they are already "+pp.describeLocation());
 				}
 				return;
 			}
@@ -334,7 +572,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 			if (getConfig().getBoolean("prison_musthotbar") && firstpearl > 9) // bail if it must be in the hotbar
 				continue; 
 				
-			if (pearlman.imprisonPlayer(player, damager)) // otherwise, try to imprison
+			if (pearlman.imprisonPlayer(player.getUniqueId(), damager)) // otherwise, try to imprison
 				break;
 		}
 	}
@@ -348,49 +586,85 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		
 		PrisonPearl pp = event.getPrisonPearl();
 		Player player = pp.getImprisonedPlayer();
-		if (player == null)
-			return;
+		UUID playerId = pp.getImprisonedId();
+		String playerName = Bukkit.getOfflinePlayer(playerId).getName();
 		
 		if (event.getType() == PrisonPearlEvent.Type.NEW) {
 			updateAttachment(player);
 			
 			Player imprisoner = event.getImprisoner();
-			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + player.getDisplayName() + ChatColor.GREEN+" to a prison pearl!");
-			player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
+			log.info(imprisoner.getDisplayName() + " has bound " + playerName + " to a PrisonPearl");
+			imprisoner.sendMessage(ChatColor.GREEN+"You've bound " + playerName + ChatColor.GREEN+" to a prison pearl!");
+			if (player != null) {
+				player.sendMessage(ChatColor.RED+"You've been bound to a prison pearl owned by " + imprisoner.getDisplayName());
+			}
 
-			String[] alts = altsList.getAltsArray(player.getName());
+			UUID[] alts = altsList.getAltsArray(playerId);
 			checkBans(alts);
 			
 		} else if (event.getType() == PrisonPearlEvent.Type.DROPPED || event.getType() == PrisonPearlEvent.Type.HELD) {
-			String loc = pp.describeLocation();
-			player.sendMessage(ChatColor.GREEN + "Your prison pearl is " + loc);
-			broadcastman.broadcast(player, ChatColor.GREEN + player.getName() + ": " + loc);
+			if (player != null) {
+				String loc = pp.describeLocation();
+				player.sendMessage(ChatColor.GREEN + "Your prison pearl is " + loc);
+				broadcastman.broadcast(player, ChatColor.GREEN + playerName + ": " + loc);
+			}
 		} else if (event.getType() == PrisonPearlEvent.Type.FREED) {
 			updateAttachment(player);
-			
-			if (!player.isDead() && player.getLocation().getWorld() == getPrisonWorld()) { // if the player isn't dead and is in prison world
-				Location loc = null;
-				if (getConfig().getBoolean("free_tppearl")) // if we tp to pearl on players being freed
-					loc = fuzzLocation(pp.getLocation()); // get the location of the pearl
-				if (loc == null) // if we don't have a location yet
-					loc = getRespawnLocation(player, player.getLocation()); // get the respawn location for the player
-				
-				if (loc == RESPAWN_PLAYER) { // if we're supposed to respawn the player
-					player.setHealth(0); // kill him
-				} else {
-					player.teleport(loc); // otherwise teleport
+			if (player != null) {
+				Location currentLoc = player.getLocation();
+				if (!player.isDead() && currentLoc.getWorld() == getPrisonWorld()) {
+					// if the player isn't dead and is in prison world
+					Location loc = null;
+					if (getConfig().getBoolean("free_tppearl")) // if we tp to pearl on players being freed
+						loc = fuzzLocation(pp.getLocation()); // get the location of the pearl
+					if (loc == null) // if we don't have a location yet
+						loc = getRespawnLocation(player, currentLoc); // get the respawn location for the player
+
+					if (loc == RESPAWN_PLAYER) { // if we're supposed to respawn the player
+						player.setHealth(0.0); // kill him
+					} else {
+						player.teleport(loc); // otherwise teleport
+					}
+				}
+				if (ppconfig.getPpsummonClearInventory()) {
+					dropInventory(player, currentLoc, ppconfig.getPpsummonLeavePearls());
 				}
 			}
-			String[] alts = altsList.getAltsArray(player.getName());
+			UUID[] alts = altsList.getAltsArray(playerId);
 			checkBans(alts);
-			
-			player.sendMessage("You've been freed!");
-			broadcastman.broadcast(player, player.getDisplayName() + " was freed!");
+
+			log.info(playerName + " was freed");
+			if (player != null) {
+				player.sendMessage("You've been freed!");
+				broadcastman.broadcast(player, playerName + " was freed!");
+			}
 		}
 	}
-	
+
+    public void dropInventory(Player player, Location loc, boolean leavePearls) {
+		if (loc == null) {
+			loc = player.getLocation();
+		}
+		World world = loc.getWorld();
+		Inventory inv = player.getInventory();
+		int end = inv.getSize();
+		for (int i = 0; i < end; ++i) {
+			ItemStack item = inv.getItem(i);
+			if (item == null) {
+				continue;
+			}
+			if (leavePearls && item.getType().equals(Material.ENDER_PEARL)
+					&& item.getDurability() == 0) {
+				continue;
+			}
+			inv.clear(i);
+			world.dropItemNaturally(loc, item);
+		}
+	}
+
 	// Announce summon events
 	// Teleport player when summoned or returned
+	@SuppressWarnings("fallthrough")
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onSummonEvent(SummonEvent event) {
 		if (event.isCancelled())
@@ -404,14 +678,25 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		switch (event.getType()) {
 		case SUMMONED:
 			player.sendMessage(ChatColor.RED+"You've been summoned to your prison pearl!");
-			player.teleport(fuzzLocation(event.getLocation()));
+			if (ppconfig.getPpsummonClearInventory()) {
+				Location oldLoc = player.getLocation();
+				player.teleport(fuzzLocation(event.getLocation()));
+				dropInventory(player, oldLoc, ppconfig.getPpsummonLeavePearls());
+			} else {
+				player.teleport(fuzzLocation(event.getLocation()));
+			}
 			break;
-			
+
 		case RETURNED:
-			player.sendMessage(ChatColor.RED+"You've been returned to your prison");
-			player.teleport(event.getLocation());
-			break;
-			
+			if (ppconfig.getPpreturnKills()) {
+				player.setHealth(0.0);
+				// Fall through to case KILLED
+			} else {
+				player.sendMessage(ChatColor.RED+"You've been returned to your prison");
+				player.teleport(event.getLocation());
+				break;
+			}
+
 		case KILLED:
 			player.sendMessage(ChatColor.RED+"You've been struck down by your pearl!");
 			break;
@@ -419,6 +704,9 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	}
 	
 	private void updateAttachment(Player player) {
+		if (player == null) {
+			return;
+		}
 		PermissionAttachment attachment = attachments.get(player.getName());
 		if (attachment == null) {
 			attachment = player.addAttachment(this);
@@ -480,7 +768,6 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return null;
 	}
 	
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isObstructed(Location loc) {
 		Location ground = new Location(loc.getWorld(), loc.getX(), 100, loc.getZ());
 		while (ground.getBlockY() >= 1) {
@@ -514,21 +801,28 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return newloc;
 	}
 	
-	private void delayedTp(final Player player, final Location loc) {
-		if (loc == RESPAWN_PLAYER) {
-			player.setHealth(0);
-		} else {
-			Bukkit.getScheduler().callSyncMethod(this, new Callable<Void>() {
-				public Void call() {
-					player.teleport(loc);
-					return null;
-				}
-			});
+	private void delayedTp(final Player player, final Location loc, final boolean dropInventory) {
+		if (dropInventory) {
 		}
+		final boolean respawn = loc == RESPAWN_PLAYER;
+		final Location oldLoc = player.getLocation();
+		if (respawn) {
+			player.setHealth(0.0);
+		}
+		Bukkit.getScheduler().callSyncMethod(this, new Callable<Void>() {
+			public Void call() {
+				if (!respawn) {
+					player.teleport(loc);
+				}
+				if (dropInventory) {
+					dropInventory(player, oldLoc, ppconfig.getPpsummonLeavePearls());
+				}
+				return null;
+			}
+		});
 	}
 
-@SuppressWarnings("SameReturnValue")
-@EventHandler(priority=EventPriority.NORMAL)
+    @EventHandler(priority=EventPriority.NORMAL)
     private boolean onPlayerChatEvent(AsyncPlayerChatEvent event) {
         if (summonman.isSummoned(event.getPlayer()) && !summonman.getSummon(event.getPlayer()).isCanSpeak()) {
            event.setCancelled(true);
@@ -567,10 +861,14 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
     	}
     	return false;
     }
-	
+
+    public CombatTagManager getCombatTagManager() {
+        return combatTagManager;
+    }
+
 	public void loadAlts() {
 		if (altsList == null) {
-			altsList = new AltsList();
+			altsList = new AltsList(this);
 		}
 		altsList.load(getAltsListFile());
 	}
@@ -578,7 +876,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public void checkBanAllAlts() {
 		if (altsList != null) {
 			Integer bannedCount = 0, unbannedCount = 0, total = 0, result;
-            for (String name : altsList.getAllNames()) {
+            for (UUID name : altsList.getAllNames()) {
                 //log.info("checking "+name);
                 result = checkBan(name);
                 total++;
@@ -592,17 +890,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		}
 	}
 	
-	void unBanAll() {
-		Server s = this.getServer();
-		String name;
-        for (String s1 : banned.keySet()) {
-            name = s1;
-            if (banned.get(name)) {
-                s.getOfflinePlayer(name).setBanned(false);
-                log.info("unbanning " + name);
-            }
-        }
-	}
+	
 	
 	//gets the most recent time an alt account has logged out (returns 0 if there are none recorded)
 	private Long getMostRecentAltLogout(String[] alts) {
@@ -619,11 +907,11 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		return time;
 	}
 	
-	private int checkBan(String name) {
+	public int checkBan(UUID id) {
 		//log.info("checking "+name);
-		String[] alts = altsList.getAltsArray(name);
+		UUID[] alts = altsList.getAltsArray(id);
 		Integer pearledCount = pearls.getImprisonedCount(alts);
-		String[] imprisonedNames = pearls.getImprisonedNames(alts);
+		UUID[] imprisonedNames = pearls.getImprisonedIds(alts);
 		String names = "";
 		for (int i = 0; i < imprisonedNames.length; i++) {
 			names = names + imprisonedNames[i];
@@ -631,46 +919,54 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 				names = names + ", ";
 			}
 		}
-		if (pearledCount > maxImprisonedAlts && pearls.isImprisoned(name)) {
+		if (pearledCount > maxImprisonedAlts && pearls.isImprisoned(id)) {
 			int count = 0;
-            for (String imprisonedName : imprisonedNames) {
-                if (imprisonedName.compareTo(name) < 0) {
+            for (UUID imprisonedName : imprisonedNames) {
+                if (imprisonedName.compareTo(id) < 0) {
                     count++;
                 }
                 if (count >= maxImprisonedAlts) {
-                    banAndKick(name, pearledCount, names);
+                    banAndKick(id, pearledCount, names);
                     return 2;
                 }
             }
-		} else if (pearledCount.equals(maxImprisonedAlts) || (pearledCount > maxImprisonedAlts && !pearls.isImprisoned(name))) {
-			banAndKick(name,pearledCount,names);
+		} else if (pearledCount.equals(maxImprisonedAlts) || (pearledCount > maxImprisonedAlts && !pearls.isImprisoned(id))) {
+			banAndKick(id,pearledCount,names);
 			return 2;
-		} else if (banned.containsKey(name) && banned.get(name)) {
-			this.getServer().getOfflinePlayer(name).setBanned(false);
-			banned.put(name, false);
+		} else if (banManager_.isBanned(id)) {
+			if (pearledCount <= 0) {
+				log.info("pardoning "+id+" for having no imprisoned alts");
+			} else {
+				log.info("pardoning "+id+" who only has "+pearledCount+" imprisoned alts");
+			}
+			banManager_.pardon(id);
 			return 1;
 		}
 		return 0;
 	}
 	
-	private void banAndKick(String name, int pearledCount, String names) {
-		this.getServer().getOfflinePlayer(name).setBanned(true);
-		Player p = this.getServer().getPlayer(name);
+	private void banAndKick(UUID id, int pearledCount, String names) {
+		this.getServer().getOfflinePlayer(id).setBanned(true);
+		Player p = this.getServer().getPlayer(id);
 		if (p != null) {
 			p.kickPlayer(kickMessage);
 		}
-		banned.put(name, true);
-		log.info("banning "+name+" for having "+pearledCount+" imprisoned alts: "+names);
+		if (banManager_.isBanned(id)) {
+			log.info(id+" still banned for having "+pearledCount+" imprisoned alts: "+names);
+			return;
+		}
+		banManager_.ban(id);
+		log.info("banning "+id+" for having "+pearledCount+" imprisoned alts: "+names);
 	}
 	
-	private void checkBans(String[] names) {
+	private void checkBans(UUID[] ids) {
 		Integer pearledCount;
-		String[] imprisonedNames;
-		String[] alts;
-        for (String name : names) {
-            log.info("checking " + name);
-            alts = altsList.getAltsArray(name);
-            imprisonedNames = pearls.getImprisonedNames(alts);
+		UUID[] imprisonedNames;
+		UUID[] alts;
+        for (UUID id : ids) {
+            log.info("checking " + id);
+            alts = altsList.getAltsArray(id);
+            imprisonedNames = pearls.getImprisonedIds(alts);
             String iNames = "";
             for (int j = 0; j < imprisonedNames.length; j++) {
                 iNames = iNames + imprisonedNames[j];
@@ -680,35 +976,32 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
             }
             pearledCount = pearls.getImprisonedCount(alts);
             if (pearledCount >= maxImprisonedAlts) {
-                this.getServer().getOfflinePlayer(name).setBanned(true);
-                Player p = this.getServer().getPlayer(name);
+                this.getServer().getOfflinePlayer(id).setBanned(true);
+                Player p = this.getServer().getPlayer(id);
                 if (p != null) {
                     p.kickPlayer(kickMessage);
                 }
-                banned.put(name, true);
-                log.info("banning " + name + ", for having " + pearledCount + " imprisoned alts: " + iNames);
-            } else if (banned.containsKey(name) && banned.get(name).equals(Boolean.TRUE)) {
-                this.getServer().getOfflinePlayer(name).setBanned(false);
-                banned.put(name, false);
-                log.info("unbanning " + name + ", no longer has too many imprisoned alts.");
+                banManager_.ban(id);
+                log.info("banning " + id + ", for having " + pearledCount + " imprisoned alts: " + iNames);
+            } else if (banManager_.isBanned(id)) {
+                this.getServer().getOfflinePlayer(id).setBanned(false);
+                banManager_.pardon(id);
+                log.info("unbanning " + id + ", no longer has too many imprisoned alts.");
             }
         }
 	}
 	
-	public boolean isTempBanned(String name) {
-		if (banned.containsKey(name)) {
-			return banned.get(name);
-		}
-		return false;
+	public boolean isTempBanned(UUID id) {
+		return banManager_.isBanned(id);
 	}
 	
-	public int getImprisonedCount(String name) {
-		return pearls.getImprisonedCount(altsList.getAltsArray(name));
+	public int getImprisonedCount(UUID id) {
+		return pearls.getImprisonedCount(altsList.getAltsArray(id));
 	}
 	
-	public String getImprisonedAltsString(String name) {
+	public String getImprisonedAltsString(UUID id) {
 		String result = "";
-		String[] alts = pearls.getImprisonedNames(altsList.getAltsArray(name));
+		UUID[] alts = pearls.getImprisonedIds(altsList.getAltsArray(id));
 		for (int i = 0; i < alts.length; i++) {
 			result = result + "alts[i]";
 			if (i < alts.length - 1) {
@@ -721,4 +1014,55 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 	public PPConfig getPPConfig() {
 		return ppconfig;
 	}
+
+    public static void info(String msg) {
+        log.info(msg);
+    }
+    
+    public AltsList getAltsList() {
+    	return altsList;
+    }
+    
+    public void setAlts(UUID id, UUID[] confirmedAlts) throws IOException
+    {
+    	UUID[] alts = altsList.getAltsArray(id);
+    	
+    	if (alts.length == 0)
+    	{
+    		return;
+    	}
+    	File saveFile = new File(this.getDataFolder().getParentFile().getParentFile(), "text" + File.separator + "excluded_alts.txt");
+		FileOutputStream fileOutputStream = new FileOutputStream(saveFile,true);
+		BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+    	for (UUID alt : alts)
+    	{
+    		if (!(arrayContains(alt, confirmedAlts)))
+    		{
+    			bufferedWriter.append(id + " " + alt);
+    			bufferedWriter.append("\n");
+    		}
+    	}
+		bufferedWriter.flush();
+		fileOutputStream.close();
+    }
+    
+    private boolean arrayContains(UUID checkValue, UUID[] array)
+    {
+    	for (UUID element : array)
+    	{
+    		if (checkValue.equals(element))
+    		{
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    public static PrisonPearlManager getPrisonPearlManager(){
+    	
+    	return pearlman;
+    }
+    
+    public BanManager getBanManager() {
+        return banManager_;
+    }
 }
