@@ -870,7 +870,7 @@ public class PrisonPearlPlugin extends JavaPlugin implements Listener {
 		if (altsList == null) {
 			altsList = new AltsList(this);
 		}
-		altsList.load(getAltsListFile());
+		altsList.queryForUpdatedAltLists(pearls.getAllUUIDSforPearls());
 	}
 	
 	public void checkBanAllAlts() {
